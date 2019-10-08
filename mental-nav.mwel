@@ -1,0 +1,162 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Display
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var stim_onset=0
+
+var br=.5
+var bg=.5
+var bb=.5
+
+stimulus_display (
+    background_color = br, bg, bb
+    redraw_on_every_refresh = true
+    announce_stimuli_on_implicit_updates = false
+)
+
+// Stimuli display parameters
+var stim_size = 7
+
+ellipse fixation_point (
+    x_size = 1
+    x_position = 0
+    y_position = 0
+)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Experiment parameters
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var num_trials_per_block = 10
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Stimuli
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+%define num_stims = 6
+var num_pairs = num_stims * (num_stims - 1)
+
+var stim_index (scope = local; default_value = 0)
+var pair_index (scope = local; default_value = 0)
+
+var start_stim_index = -1
+var end_stim_index = -1
+
+// Methods to iterate through stimuli and stimuli pairs
+%define for_each_stim ()
+    range_replicator (
+        variable = stim_index
+        from = 0
+        to = num_stims - 1
+        step = 1
+        )
+%end
+
+%define for_each_pair ()
+    range_replicator (
+        variable = pair_index
+        from = 0
+        to = num_pairs - 1
+        step = 1
+        )
+%end
+
+// Defining all possible pairs
+var start_idx =  [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5]
+var end_idx  =  [1, 2, 3, 4, 5, 0, 2, 3, 4, 5, 0, 1, 3, 4, 5, 0, 1, 2, 4, 5, 0, 1, 2, 3, 5, 0, 1, 2, 3, 4]
+
+// Stimulus position parameters
+var stim_offset = 0
+var stim_padding = 3
+var stim_position_y = 1
+
+// Stimulus drift parameters
+var stim_drift_speed = 5
+var stim_drift_direction = -1
+var stim_drift_start_time = 0
+%define stim_drift_max = display_bounds('right') - stim_offset
+%define stim_drift_min = display_bounds('left') - stim_offset - (num_stims - 1) * (stim_size + stim_padding)
+%define stim_drift_nominal = stim_drift_direction * stim_drift_speed * (next_frame_time() - stim_drift_start_time) / 1e6
+%define stim_drift = min(stim_drift_max, max(stim_drift_min, stim_drift_nominal))
+%define stim_drift_end_pos = (start_stim_index - end_stim_index) * (stim_size + stim_padding)
+%define stim_drift_end_neg = -1 * (end_stim_index - start_stim_index) * (stim_size + stim_padding)
+var stim_drift_fixed = 0
+%define stim_position_x = stim_offset + ${stim_index} * (stim_size + stim_padding) + stim_drift + stim_drift_fixed
+
+
+stimulus_group img_stims {
+    for_each_stim {
+        image_file 'img_stim_${stim_index}' (
+            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${stim_index}.jpg"
+            x_size = stim_size
+            x_position = stim_position_x
+	        y_position = stim_position_y
+        )
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Protocol
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+protocol 'Mental Navigation - Sequential' {
+    for_each_stim {
+        list {
+	        live_queue_stimulus (img_stims[stim_index])
+        }
+    }
+    block (nsamples = num_trials_per_block) {
+        list (
+            selection = random_without_replacement
+            nsamples = num_pairs
+            sampling_method = samples
+        ) {
+            for_each_pair {
+                trial {
+                    task {
+                        state 'Begin trial' {
+                            start_stim_index = start_idx[pair_index]
+                            end_stim_index = end_idx[pair_index]
+                            report ('interval index = $pair_index')
+                            report ('curr index = $start_stim_index')
+                            report ('end index = $end_stim_index')
+                            // report ('stim_drift_end_neg = $stim_drift_end_neg')
+                            // report ('stim_drift_end_pos = $stim_drift_end_pos')
+                            stim_offset = -start_stim_index * (stim_size + stim_padding)
+            			    stim_onset = next_frame_time()
+            			    stim_drift_fixed = 0
+            			    stim_drift_direction = 1
+            			    if (start_stim_index < end_stim_index) {
+                                stim_drift_direction = -1
+            			    }
+            			    queue_stimulus (fixation_point)
+            			    update_display ()
+                            goto (
+                                target = 'Begin drift'
+                            )
+                        }
+                        state 'Begin drift' {
+                            report ("*********BEGIN DRIFT**********")
+                            stim_drift_start_time = next_frame_time()
+                            goto (
+                                target = 'End drift'
+                                when = (stim_drift_direction == 1 and stim_drift >= stim_drift_end_pos) or (stim_drift_direction == -1 and stim_drift <= stim_drift_end_neg)
+                            )
+                        }
+                        state 'End drift' {
+                            report ("*********END DRIFT**********")
+                            stim_drift_fixed = stim_drift
+                            stim_drift_direction = 0
+                            wait(5s)
+                            goto (
+                                target = 'End trial'
+                            )
+                        }
+                        state 'End trial' {
+                            yield ()
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
