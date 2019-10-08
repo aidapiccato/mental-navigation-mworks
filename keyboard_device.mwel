@@ -1,0 +1,22 @@
+%define keyboard_device ()
+    iodevice/usbhid_generic (
+        usage_page = 1
+        usage = 6
+        //log_all_input_values = true
+        )
+%end
+
+%define key_name_to_usage = {
+    'right_arrow': 79,
+    'left_arrow': 80,
+    'down_arrow': 81,
+    'up_arrow': 82
+}
+
+%define keyboard_channel (key, value)
+    iochannel/usbhid_generic_input_channel (
+        usage_page = 7
+        usage = key_name_to_usage[key]
+        value = value
+        )
+%end
