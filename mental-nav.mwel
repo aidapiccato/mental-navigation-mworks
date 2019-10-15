@@ -22,18 +22,13 @@ ellipse fixation_point (
     y_position = 0
 )
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Experiment parameters
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-var num_trials_per_block = 10
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Stimuli
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 %define num_stims = 6
 var num_pairs = num_stims * (num_stims - 1)
+
 
 var stim_index (scope = local; default_value = 0)
 var pair_index (scope = local; default_value = 0)
@@ -66,23 +61,26 @@ var end_idx  =  [1, 2, 3, 4, 5, 0, 2, 3, 4, 5, 0, 1, 3, 4, 5, 0, 1, 2, 4, 5, 0, 
 
 // Stimulus position parameters
 var stim_offset = 0
-var stim_padding = 1
+var stim_padding = 2
 var stim_position_y = 1
 
-// Stimulus distance parameterss
-var stim_dist = [0, 1, 1, 1, 1, 1]
-var stim_dist_cum = [0, 1, 2, 3, 4, 5]
+// Stimulus distance parameters
+var prob = 0.5
+var max_dist = 5
+
+var stim_dist_cum = [0, 0, 0, 0, 0, 0]
 
 // Stimulus drift parameters
-var stim_drift_speed = 5
+var stim_drift_speed = 8
 var stim_drift_direction = 0
 var stim_drift_start_time = 0
 var stim_drift_fixed = 0
 
 %define stim_drift_max = display_bounds('right') - stim_offset
-%define stim_drift_min = display_bounds('left') - stim_offset - (num_stims - 1) * (stim_size) + stim_dist_cum[num_stims - 1] * stim_padding
+%define stim_drift_min = display_bounds('left') - stim_offset - (num_stims - 1) * (stim_size) - stim_dist_cum[num_stims - 1] * stim_padding
+var stim_drift_max_var = stim_drift_max
+var stim_drift_min_var = stim_drift_min
 %define stim_drift_nominal = stim_drift_direction * stim_drift_speed * (next_frame_time() - stim_drift_start_time) / 1e6
-
 %define stim_drift = min(stim_drift_max, max(stim_drift_min, stim_drift_nominal))
 var stim_drift_var = stim_drift
 %define stim_drift_end_pos =      (start_stim_index - end_stim_index) * (stim_size) + (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index]) * stim_padding
@@ -100,6 +98,53 @@ stimulus_group img_stims {
         )
     }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Experiment parameters
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+var num_trials_per_block = 10
+
+var trials_from_meta = 1
+var selection_index = 0
+
+selection trial_index (
+    values = 0:num_pairs
+    selection = random_without_replacement
+    advance_on_accept = YES
+    autoreset = YES
+)
+group 'Python parameters' {
+    var py_start_stim_index = 0
+    var py_end_stim_index = 0
+    var py_pair_index = 0
+    var py_stim_dist_cum = []
+    var py_meta_index = 0
+}
+
+
+%define update_trial_params_from_meta ()
+    trials_from_meta = 1
+    selection_index = trial_index
+    run_python_string(get_metaparameters())
+    report('Trial $py_meta_index')
+    start_stim_index = py_start_stim_index
+    end_stim_index = py_end_stim_index
+    pair_index = py_pair_index
+    stim_dist_cum = py_stim_dist_cum
+    py_meta_index = py_meta_index
+%end
+
+%define reset_vars ()
+    stim_dist_cum = [0, 0, 0, 0, 0]
+    start_stim_index = 0
+    end_stim_index = 0
+    pair_index = 0
+    // stim_drift = 0
+    // stim_drift_offset = 0
+    stim_offset = 0
+    stim_drift_direction = 0
+%end
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Protocol
@@ -111,61 +156,54 @@ protocol 'Mental Navigation - Sequential' {
 	        live_queue_stimulus (img_stims[stim_index])
         }
     }
+    reset_selection (trial_index)
+    run_python_file('mental-nav_utils.py')
     block (nsamples = num_trials_per_block) {
-        list (
-            selection = random_without_replacement
-            nsamples = num_pairs
-            sampling_method = samples
-        ) {
-            for_each_pair {
-                trial {
-                    task {
-                        state 'Begin trial' {
-                            start_stim_index = start_idx[pair_index]
-                            end_stim_index = end_idx[pair_index]
-                            report ('interval index = $pair_index')
-                            report ('start index = $start_stim_index')
-                            report ('end index = $end_stim_index')
-                            // report ('stim_drift_end_neg = $stim_drift_end_neg')
-                            // report ('stim_drift_end_pos = $stim_drift_end_pos')
-                            stim_offset = -start_stim_index * (stim_size) - stim_dist_cum[start_stim_index] * stim_padding
-            			    // stim_onset = next_frame_time()
-            			    stim_drift_fixed = 0
-            			    stim_drift_var = stim_drift
-            			    report ('stim_drift_var = $stim_drift_var')
-            			    queue_stimulus (fixation_point)
-            			    update_display ()
-            			    report('stim_offset = $stim_offset')
-            			    wait (1s)
-                            goto (
-                                target = 'Begin drift'
-                            )
-                        }
-                        state 'Begin drift' {
-                            report ("*********BEGIN DRIFT**********")
-                            stim_drift_start_time = next_frame_time()
-                            stim_drift_direction = 1                  
-                            if (start_stim_index < end_stim_index) {  
-                                stim_drift_direction = -1             
-                            }
-                            goto (
-                                target = 'End drift'
-                                when = (stim_drift_direction == 1 and stim_drift >= stim_drift_end_pos) or (stim_drift_direction == -1 and stim_drift <= stim_drift_end_neg)
-                            )
-                        }
-                        state 'End drift' {
-                            report ("*********END DRIFT**********")
-                            stim_drift_fixed = stim_drift
-                            stim_drift_direction = 0
-                            wait(5s)
-                            goto (
-                                target = 'End trial'
-                            )
-                        }
-                        state 'End trial' {
-                            yield ()
-                        }
+        trial {
+            task {
+                state 'Begin trial' {
+                    update_trial_params_from_meta()
+                    report ('interval index = $pair_index')
+                    report ('start index = $start_stim_index')
+                    report ('end index = $end_stim_index')
+                    report ('stim_dist_cum = $stim_dist_cum')
+                    stim_offset = -start_stim_index * (stim_size) - stim_dist_cum[start_stim_index] * stim_padding
+                    stim_drift_fixed = 0
+                    queue_stimulus (fixation_point)
+                    update_display ()
+                    report('stim_offset = $stim_offset')
+                    report('stim_drift_min_var = $stim_drift_min_var')
+                    report('stim_drift_max_var = $stim_drift_max_var')
+                    wait (1s)
+                    goto (
+                        target = 'Begin drift'
+                    )
+                }
+                state 'Begin drift' {
+                    report ("*********BEGIN DRIFT**********")
+                    stim_drift_start_time = next_frame_time()
+                    stim_drift_direction = 1
+                    if (start_stim_index < end_stim_index) {
+                        stim_drift_direction = -1
                     }
+                    goto (
+                        target = 'End drift'
+                        when = (stim_drift_direction == 1 and stim_drift >= stim_drift_end_pos) or (stim_drift_direction == -1 and stim_drift <= stim_drift_end_neg)
+                    )
+                }
+                state 'End drift' {
+                    report ("*********END DRIFT**********")
+                    stim_drift_fixed = stim_drift
+                    stim_drift_direction = 0
+                    wait(5s)
+                    goto (
+                        target = 'End trial'
+                    )
+                }
+                state 'End trial' {
+                    accept_selections (trial_index)
+                    reset_vars()
+                    yield ()
                 }
             }
         }
