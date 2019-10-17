@@ -82,9 +82,11 @@ var stim_drift_max_var = stim_drift_max
 var stim_drift_min_var = stim_drift_min
 %define stim_drift_nominal = stim_drift_direction * stim_drift_speed * (next_frame_time() - stim_drift_start_time) / 1e6
 %define stim_drift = min(stim_drift_max, max(stim_drift_min, stim_drift_nominal))
+// %define stim_drift = stim_drift_nominal
 var stim_drift_var = stim_drift
 %define stim_drift_end_pos =      (start_stim_index - end_stim_index) * (stim_size) + (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index]) * stim_padding
 %define stim_drift_end_neg = -1 * (end_stim_index - start_stim_index) * (stim_size) - (stim_dist_cum[end_stim_index]   - stim_dist_cum[start_stim_index]) * stim_padding
+%define
 
 %define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + stim_drift + stim_drift_fixed
 
@@ -120,6 +122,7 @@ group 'Python parameters' {
     var py_pair_index = 0
     var py_stim_dist_cum = []
     var py_meta_index = 0
+    var py_stim_drift_direction = 0
 }
 
 
@@ -133,6 +136,7 @@ group 'Python parameters' {
     pair_index = py_pair_index
     stim_dist_cum = py_stim_dist_cum
     py_meta_index = py_meta_index
+    stim_drift_direction = py_stim_drift_direction
 %end
 
 %define reset_vars ()
@@ -166,30 +170,23 @@ protocol 'Mental Navigation - Sequential' {
                     report ('interval index = $pair_index')
                     report ('start index = $start_stim_index')
                     report ('end index = $end_stim_index')
+                    report ('direction = $stim_drift_direction')
                     report ('stim_dist_cum = $stim_dist_cum')
                     stim_offset = -start_stim_index * (stim_size) - stim_dist_cum[start_stim_index] * stim_padding
                     stim_drift_fixed = 0
+                    stim_drift_start_time = next_frame_time()
                     queue_stimulus (fixation_point)
                     update_display ()
                     report('stim_offset = $stim_offset')
                     report('stim_drift_min_var = $stim_drift_min_var')
                     report('stim_drift_max_var = $stim_drift_max_var')
-                    wait (1s)
-                    goto (
-                        target = 'Begin drift'
-                    )
-                }
-                state 'Begin drift' {
-                    report ("*********BEGIN DRIFT**********")
-                    stim_drift_start_time = next_frame_time()
-                    stim_drift_direction = 1
-                    if (start_stim_index < end_stim_index) {
-                        stim_drift_direction = -1
-                    }
                     goto (
                         target = 'End drift'
                         when = (stim_drift_direction == 1 and stim_drift >= stim_drift_end_pos) or (stim_drift_direction == -1 and stim_drift <= stim_drift_end_neg)
                     )
+                }
+                state 'Begin drift' {
+                    report ("*********BEGIN DRIFT**********")
                 }
                 state 'End drift' {
                     report ("*********END DRIFT**********")
