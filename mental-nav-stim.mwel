@@ -1,0 +1,93 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Stimuli
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Stimuli display parameters
+var stim_size = 7
+var stim_padding = 2
+var stim_position_y = 1
+group 'Python parameters' {
+    var py_start_stim_index = 0
+    var py_end_stim_index = 0
+    var py_pair_index = 0
+    var py_stim_dist_cum = []
+    var py_meta_index = 0
+    var py_stim_drift_direction = 0
+}
+%define num_stims = 6
+var num_pairs = num_stims * (num_stims - 1)
+
+
+group 'Sequence variables' {
+    var start_stim_index = 0
+    var end_stim_index = 0
+    var stim_index (scope = local; default_value = 0)
+    var pair_index (scope = local; default_value = 0)
+    var stim_dist_cum = [0, 0, 0, 0, 0, 0]
+}
+
+group 'Stimulus drift variables' {
+    var stim_drift_speed = 8
+    var stim_drift_direction = 0
+    var stim_drift_start_time = 0
+    var stim_drift_fixed = 0
+    var stim_offset = 0
+}
+
+// Methods to iterate through stimuli and stimuli pairs
+%define for_each_stim ()
+    range_replicator (
+        variable = stim_index
+        from = 0
+        to = num_stims - 1
+        step = 1
+        )
+%end
+
+%define for_each_pair ()
+    range_replicator (
+        variable = pair_index
+        from = 0
+        to = num_pairs - 1
+        step = 1
+       )
+%end
+
+
+%define stim_drift_wrap = (py_stim_drift_direction == -1 and start_stim_index > end_stim_index) or (py_stim_drift_direction == 1 and end_stim_index > start_stim_index)
+%define stim_drift_symb_dist = abs(stim_drift_wrap * num_stims - abs(start_stim_index - end_stim_index))
+%define stim_drift_spat_dist = abs(stim_drift_wrap * stim_dist_cum[num_stims - 1] + py_stim_drift_direction * (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index]))
+
+var stim_drift_wrap_var = stim_drift_wrap
+var stim_drift_symb_dist_var = stim_drift_symb_dist
+var stim_drift_spat_dist_var = stim_drift_spat_dist
+
+%define stim_drift_max = display_bounds('right') - stim_offset
+%define stim_drift_min = display_bounds('left') - stim_offset - (num_stims - 1) * (stim_size) - stim_dist_cum[num_stims - 1] * stim_padding
+
+var stim_drift_max_var = stim_drift_max
+var stim_drift_min_var = stim_drift_min
+
+
+%define stim_drift = stim_drift_direction * stim_drift_speed * (next_frame_time() - stim_drift_start_time) / 1e6
+
+%define stim_drift_end_pos = stim_drift_symb_dist * stim_size + stim_drift_spat_dist * stim_padding
+%define stim_drift_end_neg = stim_drift_direction * (stim_drift_symb_dist * stim_size + stim_drift_spat_dist * stim_padding)
+
+
+%define stim_seq_length = (num_stims) * (stim_size) + stim_dist_cum[num_stims - 1] * stim_padding
+%define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + stim_drift + stim_drift_fixed
+
+%define stim_wrapped_right = ((stim_position_x < (display_bounds('left') - stim_size/2)))
+%define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
+%define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
+
+stimulus_group img_stims {
+    for_each_stim {
+        image_file 'img_stim_${stim_index}' (
+            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${stim_index}.jpg"
+            x_size = stim_size
+            x_position = stim_position_x_wrapped
+	        y_position = 0 // 2 * ((stim_position_x < stim_drift_min) or (stim_position_x > stim_drift_max))
+        )
+    }
+}
