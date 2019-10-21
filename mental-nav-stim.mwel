@@ -79,7 +79,26 @@ var stim_drift_min_var = stim_drift_min
 
 %define stim_wrapped_right = ((stim_position_x < (display_bounds('left') - stim_size/2)))
 %define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
+
 %define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
+
+var m_alpha = 0
+
+%define alpha_multiplier = m_alpha * stim_drift / stim_drift_speed
+
+var num_options = 2
+
+stimulus_group maskstims {
+    for_each_stim {
+        rectangle 'mask_stim_${stim_index}' (
+            color = 0.7, 0.7, 0.7
+            x_size = stim_size
+            x_position = stim_position_x_wrapped
+            y_position = 0
+	        alpha_multiplier = max(min(alpha_multiplier, 1), 0)
+	    )
+    }
+}
 
 stimulus_group img_stims {
     for_each_stim {
@@ -87,7 +106,7 @@ stimulus_group img_stims {
             path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${stim_index}.jpg"
             x_size = stim_size
             x_position = stim_position_x_wrapped
-	        y_position = 0 // 2 * ((stim_position_x < stim_drift_min) or (stim_position_x > stim_drift_max))
+	        y_position = 0
         )
     }
 }

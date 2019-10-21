@@ -23,13 +23,18 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
     for t in range(n_condition_repeats):
         for pair_index in range(num_pairs):
             meta_index = t * num_pairs + pair_index
-            # stim_drift_direction = 1 if np.random.rand() > 0.5 else -1
-            stim_drift_direction = 1
+            stim_drift_direction = 1 if np.random.rand() > 0.5 else -1
             meta['start_stim_index'].append(start_idx[pair_index])
             meta['end_stim_index'].append(end_idx[pair_index])
             meta['pair_index'].append(pair_index)
             meta['meta_index'].append(meta_index)
             meta['stim_drift_direction'].append(stim_drift_direction)
+            end_stim_index = end_idx[pair_index]
+            right = [] if end_stim_index == num_stims - 1 else np.arange(end_stim_index + 1, num_stims)
+            # right = np.arange(end_stim_index + 1, np.amin((num_stims - 1, end_stim_index + 1)))
+            meta['options_list'] = np.random.permutation(np.concatenate(([end_stim_index],
+                                                                        np.arange(0, end_stim_index),
+                                                                        right)))
             # stim_dist = np.random.geometric(prob, size=num_stims)
             # stim_dist = np.clip(stim_dist, 1, max_dist)
             stim_dist = np.ones((num_stims))

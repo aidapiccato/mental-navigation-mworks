@@ -85,6 +85,7 @@ protocol 'Mental Navigation - Sequential' {
     for_each_stim {
         list {
 	        live_queue_stimulus (img_stims[stim_index])
+	        live_queue_stimulus (maskstims[stim_index])
         }
     }
     reset_selection (trial_index)
