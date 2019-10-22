@@ -1,5 +1,5 @@
 %include 'mental-nav-stim'
-
+%include 'keyboard_device'
 var eye_h_raw = 0
 var eye_v_raw = 0
 
@@ -147,8 +147,18 @@ fake_monkey eye_tracker {
      )
 %end
 
+%define simulate_fixation_choice ()
+    fake_monkey_saccade_and_fixate (
+        fake_monkey = eye_tracker
+        h = option_selector_distance * cos(2 * pi() / num_options * 0)
+        v = option_selector_distance * sin(2 * pi() / num_options * 0)
+        duration = 10 s
+     )
+%end
+
 protocol 'Mental Navigation - Sequential' {
     start_io_device (eye_tracker)
+    start_io_device (keyboard)
     for_each_stim {
         list {
 	        live_queue_stimulus (img_stims[stim_index])
@@ -221,9 +231,11 @@ protocol 'Mental Navigation - Sequential' {
                 state 'Present options' {
                     report ("*********PRESENT OPTIONS**********")
                     view_options = 1
-                    wait (5s)
+                    wait (1s)
+                    simulate_fixation_choice()
                     goto (
                         target = 'End trial'
+                        when = space_pressed
                     )
                 }
                 state 'End trial' {
@@ -236,4 +248,5 @@ protocol 'Mental Navigation - Sequential' {
         }
     }
     stop_io_device (eye_tracker)
+    stop_io_device (keyboard)
 }

@@ -123,6 +123,7 @@ stimulus_group maskstims {
     }
 }
 
+var option_selectors_in_window = [0, 0, 0, 0, 0, 0]
 stimulus_group option_stims_selectors {
     for_each_option_stim {
         circular_fixation_point 'option_stim_${option_stim_index}' (
@@ -130,7 +131,7 @@ stimulus_group option_stims_selectors {
 	        trigger_width = fixation_width
             trigger_watch_x = eye_h
             trigger_watch_y = eye_v
-            trigger_flag = eye_in_window
+            trigger_flag = option_selectors_in_window[${option_stim_index}]
             color = 1,0,0
             x_size = fixation_point_size
             x_position = option_stim_selector_position_x

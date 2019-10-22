@@ -2,6 +2,7 @@
     iodevice/usbhid_generic (
         usage_page = 1
         usage = 6
+        preferred_location_id = 2152726528
         //log_all_input_values = true
         )
 %end
@@ -11,12 +12,7 @@
     'left_arrow': 80,
     'down_arrow': 81,
     'up_arrow': 82,
-    'one': 2,
-    'two': 3,
-    'three': 4,
-    'four': 5,
-    'five': 6,
-    'six': 7,
+    'spacebar': 44
 
 }
 
@@ -25,5 +21,12 @@
         usage_page = 7
         usage = key_name_to_usage[key]
         value = value
-        )
+
+     )
 %end
+
+var space_pressed = 0
+
+keyboard_device keyboard {
+    keyboard_channel (key = 'spacebar'; value = space_pressed)
+}
