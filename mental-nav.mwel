@@ -75,6 +75,7 @@ selection trial_index (
     // stim_drift_offset = 0
     stim_offset = 0
     stim_drift_direction = 0
+    view_options = 0
 %end
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,6 +87,12 @@ protocol 'Mental Navigation - Sequential' {
         list {
 	        live_queue_stimulus (img_stims[stim_index])
 	        live_queue_stimulus (maskstims[stim_index])
+        }
+    }
+    for_each_option_stim {
+        list {
+            live_queue_stimulus(option_stims[option_stim_index])
+            live_queue_stimulus(option_stims_selectors[option_stim_index])
         }
     }
     reset_selection (trial_index)
@@ -130,7 +137,14 @@ protocol 'Mental Navigation - Sequential' {
                     report ("*********END DRIFT**********")
                     stim_drift_fixed = stim_drift
                     stim_drift_direction = 0
-                    wait(5s)
+                    wait (1s)
+                    goto (
+                        target = 'Present options'
+                    )
+                }
+                state 'Present options' {
+                    view_options = 1
+                    wait (5s)
                     goto (
                         target = 'End trial'
                     )

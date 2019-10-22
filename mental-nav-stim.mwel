@@ -5,6 +5,8 @@
 var stim_size = 7
 var stim_padding = 2
 var stim_position_y = 1
+var view_options = 0
+%define num_options = 6
 group 'Python parameters' {
     var py_start_stim_index = 0
     var py_end_stim_index = 0
@@ -22,6 +24,7 @@ group 'Sequence variables' {
     var end_stim_index = 0
     var stim_index (scope = local; default_value = 0)
     var pair_index (scope = local; default_value = 0)
+    var option_stim_index (scope = local; default_value = 0)
     var stim_dist_cum = [0, 0, 0, 0, 0, 0]
 }
 
@@ -42,6 +45,15 @@ group 'Stimulus drift variables' {
         step = 1
         )
 %end
+
+%define for_each_option_stim ()
+    range_replicator (
+        variable = option_stim_index
+        from = 0
+        to = num_options - 1
+        step = 1
+    )
+% end
 
 %define for_each_pair ()
     range_replicator (
@@ -79,9 +91,15 @@ var stim_drift_min_var = stim_drift_min
 
 %define stim_wrapped_right = ((stim_position_x < (display_bounds('left') - stim_size/2)))
 %define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
-
+var option_distance = 8
+var option_stim_size = 5
+var option_selector_distance = 13
+%define option_stim_position_x = option_distance * cos(2 * pi() / num_options * ${option_stim_index})
+%define option_stim_position_y = option_distance * sin(2 * pi() / num_options * ${option_stim_index})
+%define option_stim_selector_position_x = option_selector_distance * cos(2 * pi() / num_options * ${option_stim_index})
+%define option_stim_selector_position_y = option_selector_distance * sin(2 * pi() / num_options * ${option_stim_index})
 %define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
-
+%define view_stim = view_options * (1 - (${stim_index} != end_stim_index)) + (1 - view_options)
 var m_alpha = 0
 
 %define alpha_multiplier = m_alpha * stim_drift / stim_drift_speed
@@ -95,7 +113,30 @@ stimulus_group maskstims {
             x_size = stim_size
             x_position = stim_position_x_wrapped
             y_position = 0
-	        alpha_multiplier = max(min(alpha_multiplier, 1), 0)
+	        alpha_multiplier = view_stim *  max(min(alpha_multiplier, 1), 0)
+	    )
+    }
+}
+
+stimulus_group option_stims_selectors {
+    for_each_option_stim {
+        ellipse 'option_stim_${option_stim_index}' (
+            x_size = 1
+            x_position = option_stim_selector_position_x
+            y_position = option_stim_selector_position_y
+	        alpha_multiplier = view_options
+	    )
+    }
+}
+
+stimulus_group option_stims {
+    for_each_option_stim {
+        image_file 'img_option_stim_${option_stim_index}' (
+            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${option_stim_index}.jpg"
+            x_size = option_stim_size
+            x_position = option_stim_position_x
+            y_position = option_stim_position_y
+	        alpha_multiplier = view_options
 	    )
     }
 }
@@ -103,10 +144,11 @@ stimulus_group maskstims {
 stimulus_group img_stims {
     for_each_stim {
         image_file 'img_stim_${stim_index}' (
-            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${stim_index}.jpg"
+            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${stim_index}.jpg"
             x_size = stim_size
             x_position = stim_position_x_wrapped
 	        y_position = 0
+	        alpha_multiplier = view_stim
         )
     }
 }
