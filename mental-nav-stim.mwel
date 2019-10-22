@@ -7,6 +7,10 @@ var stim_padding = 2
 var stim_position_y = 1
 var view_options = 0
 %define num_options = 6
+
+group 'Behavior' {
+    var selection_index = -1
+}
 group 'Python parameters' {
     var py_start_stim_index = 0
     var py_end_stim_index = 0
@@ -15,11 +19,13 @@ group 'Python parameters' {
     var py_meta_index = 0
     var py_stim_drift_direction = 0
 }
+
 %define num_stims = 6
 var num_pairs = num_stims * (num_stims - 1)
 
 
 group 'Sequence variables' {
+
     var start_stim_index = 0
     var end_stim_index = 0
     var stim_index (scope = local; default_value = 0)
@@ -99,12 +105,11 @@ var option_selector_distance = 13
 %define option_stim_selector_position_x = option_selector_distance * cos(2 * pi() / num_options * ${option_stim_index})
 %define option_stim_selector_position_y = option_selector_distance * sin(2 * pi() / num_options * ${option_stim_index})
 %define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
-%define view_stim = view_options * (1 - (${stim_index} != end_stim_index)) + (1 - view_options)
+var begin_drift = 0
+%define view_stim = begin_drift * (view_options * (1 - (${stim_index} != end_stim_index)) + (1 - view_options))
 var m_alpha = 0
 
 %define alpha_multiplier = m_alpha * stim_drift / stim_drift_speed
-
-var num_options = 2
 
 stimulus_group maskstims {
     for_each_stim {
@@ -120,11 +125,16 @@ stimulus_group maskstims {
 
 stimulus_group option_stims_selectors {
     for_each_option_stim {
-        ellipse 'option_stim_${option_stim_index}' (
-            x_size = 1
+        circular_fixation_point 'option_stim_${option_stim_index}' (
+	        alpha_multiplier = view_options
+	        trigger_width = fixation_width
+            trigger_watch_x = eye_h
+            trigger_watch_y = eye_v
+            trigger_flag = eye_in_window
+            color = 1,0,0
+            x_size = fixation_point_size
             x_position = option_stim_selector_position_x
             y_position = option_stim_selector_position_y
-	        alpha_multiplier = view_options
 	    )
     }
 }

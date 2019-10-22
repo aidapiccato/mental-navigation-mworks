@@ -10,7 +10,14 @@
     'right_arrow': 79,
     'left_arrow': 80,
     'down_arrow': 81,
-    'up_arrow': 82
+    'up_arrow': 82,
+    'one': 2,
+    'two': 3,
+    'three': 4,
+    'four': 5,
+    'five': 6,
+    'six': 7,
+
 }
 
 %define keyboard_channel (key, value)
