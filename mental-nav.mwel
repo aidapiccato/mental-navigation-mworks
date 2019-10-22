@@ -1,60 +1,7 @@
+%include 'eye'
 %include 'mental-nav-stim'
 %include 'keyboard_device'
-var eye_h_raw = 0
-var eye_v_raw = 0
 
-var eye_h_calibrated = 0
-var eye_v_calibrated = 0
-
-standard_eye_calibrator eye_calibrator (
-    eyeh_raw = eye_h_raw
-    eyev_raw = eye_v_raw
-    eyeh_calibrated = eye_h_calibrated
-    eyev_calibrated = eye_v_calibrated
-    )
-
-var eye_h = 0
-var eye_v = 0
-
-boxcar_filter_1d (
-    in1 = eye_h_calibrated
-    out1 = eye_h
-    width_samples = 5
-    )
-
-boxcar_filter_1d (
-    in1 = eye_v_calibrated
-    out1 = eye_v
-    width_samples = 5
-    )
-
-var fixation_width = 2
-var fixation_point_size = 1
-var fixation_pos_x = 0
-var fixation_pos_y = 0
-var eye_in_window = false
-
-circular_fixation_point fixation_point (
-    trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
-    trigger_flag = eye_in_window
-    color = 1,0,0
-    x_size = fixation_point_size
-    x_position = fixation_pos_x
-    y_position = fixation_pos_y
-)
-
-var saccade = false
-
-basic_eye_monitor (
-    eyeh_calibrated = eye_h
-    eyev_calibrated = eye_v
-    eye_state = saccade
-    width_samples = 5
-    saccade_entry_speed = 60
-    saccade_exit_speed = 20
-)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Display
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,7 +63,6 @@ var options_list = [0, 0, 0, 0, 0, 0]
     stim_dist_cum = py_stim_dist_cum
     py_meta_index = py_meta_index
     options_list = py_options_list
-    num_options = py_num_options
     // stim_drift_direction = py_stim_drift_direction
 %end
 
@@ -134,32 +80,6 @@ var options_list = [0, 0, 0, 0, 0, 0]
 // Protocol
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fake_monkey eye_tracker {
-    iochannel/eye_movement (
-        eye_h = eye_h_raw
-        eye_v = eye_v_raw
-        data_interval = 1ms
-        update_interval = 10ms
-    )
-}
-
-%define simulate_fixation ()
-    fake_monkey_saccade_and_fixate (
-        fake_monkey = eye_tracker
-        h = fixation_pos_x
-        v = fixation_pos_y
-        duration = 10 s
-     )
-%end
-
-%define simulate_fixation_choice ()
-    fake_monkey_saccade_and_fixate (
-        fake_monkey = eye_tracker
-        h = option_selector_distance * cos(2 * pi() / num_options * end_stim_index)
-        v = option_selector_distance * sin(2 * pi() / num_options * end_stim_index)
-        duration = 10s
-     )
-%end
 
 protocol 'Mental Navigation - Sequential' {
     start_io_device (eye_tracker)
@@ -179,7 +99,7 @@ protocol 'Mental Navigation - Sequential' {
             for_each_option_stim {
                 list {
                     live_queue_stimulus(option_stims[option_stim_index])
-                    live_queue_stimulus(option_stims_selectors[option_stim_index])
+                    // live_queue_stimulus(option_stims_selectors[option_stim_index])
                 }
             }
             task {
@@ -237,6 +157,7 @@ protocol 'Mental Navigation - Sequential' {
                 state 'Present options' {
                     report ("*********PRESENT OPTIONS**********")
                     view_options = 1
+                    display_option_selectors()
                     wait (1s)
                     simulate_fixation_choice()
                     start_timer (
@@ -245,7 +166,7 @@ protocol 'Mental Navigation - Sequential' {
                     )
                     goto (
                         target = 'Success'
-                        when = eye_in_selector and (not saccade)
+                        when = eye_in_selector_0 and (not saccade)
                     )
                     goto (
                         target = 'Failure'
@@ -266,6 +187,7 @@ protocol 'Mental Navigation - Sequential' {
                 }
                 state 'End trial' {
                     report ("*********END TRIAL**********")
+                    remove_option_selectors()
                     accept_selections (trial_index)
                     reset_vars()
 

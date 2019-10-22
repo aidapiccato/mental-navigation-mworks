@@ -107,8 +107,8 @@ var option_stim_size = 5
 var option_selector_distance = 13
 %define option_stim_position_x = option_distance * cos(2 * pi() / num_options * ${options_list}[${option_stim_index}])
 %define option_stim_position_y = option_distance * sin(2 * pi() / num_options * ${options_list}[${option_stim_index}])
-%define option_stim_selector_position_x = option_selector_distance * cos(2 * pi() / num_options * ${options_list}[${option_stim_index}])
-%define option_stim_selector_position_y = option_selector_distance * sin(2 * pi() / num_options * ${options_list}[${option_stim_index}])
+%define option_stim_selector_position_x (index) option_selector_distance * cos(2 * pi() / num_options * options_list[index])
+%define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * options_list[index])
 %define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
 var begin_drift = 0
 %define view_stim = begin_drift * (view_options * (1 - (${stim_index} != end_stim_index)) + (1 - view_options))
@@ -127,29 +127,6 @@ stimulus_group mask_stims {
 	    )
     }
 }
-
-var option_selectors_in_window = [0, 0, 0, 0, 0, 0]
-
-var eye_in_selector = false
-stimulus_group option_stims_selectors {
-    for_each_option_stim {
-        circular_fixation_point 'selector_fixator_${option_stim_index}' (
-            alpha_multiplier = view_options
-            trigger_width = fixation_width
-            trigger_watch_x = eye_h
-            trigger_watch_y = eye_v
-            trigger_flag = eye_in_selector
-            color = 1,0,0
-            x_size = fixation_point_size
-            x_position = option_selector_distance * cos(2 * pi() / num_options * ${option_stim_index})
-            y_position = option_selector_distance * sin(2 * pi() / num_options * ${option_stim_index})
-        )
-    }
-}
-
-
-
-
 
 stimulus_group option_stims {
     for_each_option_stim {
@@ -174,3 +151,95 @@ stimulus_group img_stims {
         )
     }
 }
+
+var eye_in_selector_0 = 0
+var eye_in_selector_1 = 0
+var eye_in_selector_2 = 0
+var eye_in_selector_3 = 0
+var eye_in_selector_4 = 0
+var eye_in_selector_5 = 0
+
+circular_fixation_point option_selector_0 (
+    trigger_width = fixation_width
+    trigger_watch_x = eye_h
+    trigger_watch_y = eye_v
+    trigger_flag = eye_in_selector_0
+    x_position = option_stim_selector_position_x (0)
+    y_position = option_stim_selector_position_y (0)
+    x_size = 1
+    color = 1, 0, 0
+)
+
+circular_fixation_point option_selector_1 (
+    trigger_width = fixation_width
+    trigger_watch_x = eye_h
+    trigger_watch_y = eye_v
+    trigger_flag = eye_in_selector_1
+    x_position = option_stim_selector_position_x (1)
+    y_position = option_stim_selector_position_y (1)
+    x_size = 1
+    color = 1, 0, 0
+)
+
+circular_fixation_point option_selector_2 (
+    trigger_width = fixation_width
+    trigger_watch_x = eye_h
+    trigger_watch_y = eye_v
+    trigger_flag = eye_in_selector_2
+    x_position = option_stim_selector_position_x (2)
+    y_position = option_stim_selector_position_y (2)
+    x_size = 1
+    color = 1, 0, 0
+)
+circular_fixation_point option_selector_3 (
+    trigger_width = fixation_width
+    trigger_watch_x = eye_h
+    trigger_watch_y = eye_v
+    trigger_flag = eye_in_selector_3
+    x_position = option_stim_selector_position_x (3)
+    y_position = option_stim_selector_position_y (3)
+    x_size = 1
+    color = 1, 0, 0
+)
+
+circular_fixation_point option_selector_4 (
+    trigger_width = fixation_width
+    trigger_watch_x = eye_h
+    trigger_watch_y = eye_v
+    trigger_flag = eye_in_selector_4
+    x_position = option_stim_selector_position_x (4)
+    y_position = option_stim_selector_position_y (4)
+    x_size = 1
+    color = 1, 0, 0
+)
+
+circular_fixation_point option_selector_5 (
+    trigger_width = fixation_width
+    trigger_watch_x = eye_h
+    trigger_watch_y = eye_v
+    trigger_flag = eye_in_selector_5
+    x_position = option_stim_selector_position_x (5)
+    y_position = option_stim_selector_position_y (5)
+    x_size = 1
+    color = 1, 0, 0
+)
+
+%define display_option_selectors()
+    queue_stimulus(option_selector_0)
+    queue_stimulus(option_selector_1)
+    queue_stimulus(option_selector_2)
+    queue_stimulus(option_selector_3)
+    queue_stimulus(option_selector_4)
+    queue_stimulus(option_selector_5)
+    update_display()
+%end
+
+%define remove_option_selectors()
+    dequeue_stimulus(option_selector_0)
+    dequeue_stimulus(option_selector_1)
+    dequeue_stimulus(option_selector_2)
+    dequeue_stimulus(option_selector_3)
+    dequeue_stimulus(option_selector_4)
+    dequeue_stimulus(option_selector_5)
+    update_display()
+%end
