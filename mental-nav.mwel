@@ -3,6 +3,9 @@
 var eye_h_raw = 0
 var eye_v_raw = 0
 
+var nsuccess = 0
+var nfailure = 0
+
 var eye_h_calibrated = 0
 var eye_v_calibrated = 0
 
@@ -150,9 +153,9 @@ fake_monkey eye_tracker {
 %define simulate_fixation_choice ()
     fake_monkey_saccade_and_fixate (
         fake_monkey = eye_tracker
-        h = option_selector_distance * cos(2 * pi() / num_options * 0)
-        v = option_selector_distance * sin(2 * pi() / num_options * 0)
-        duration = 10 s
+        h = option_selector_distance * cos(2 * pi() / num_options * end_stim_index)
+        v = option_selector_distance * sin(2 * pi() / num_options * end_stim_index)
+        duration = 10s
      )
 %end
 
@@ -231,17 +234,41 @@ protocol 'Mental Navigation - Sequential' {
                 state 'Present options' {
                     report ("*********PRESENT OPTIONS**********")
                     view_options = 1
+                    display_selector ()
                     wait (1s)
                     simulate_fixation_choice()
-                    goto (
-                        target = 'End trial'
-                        when = space_pressed
+                    start_timer (
+                        timer = selection_timer
+                        duration = 2s
                     )
+                    goto (
+                        target = 'Success'
+                        when = eye_in_selector and (not saccade)
+                    )
+                    goto (
+                        target = 'Failure'
+                        when = timer_expired(selection_timer)
+
+                    )
+                }
+                state 'Success' {
+                    report ("*********SUCCESS**********")
+                    nsuccess = nsuccess + 1
+
+                    wait (1s)
+                    goto ('End trial')
+                }
+                state 'Failure' {
+                    report ("*********FAILURE**********")
+                    nfailure = nfailure + 1
+                    wait (1s)
+                    goto ('End trial')
                 }
                 state 'End trial' {
                     report ("*********END TRIAL**********")
                     accept_selections (trial_index)
                     reset_vars()
+
                     yield ()
                 }
             }

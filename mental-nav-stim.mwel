@@ -126,12 +126,8 @@ stimulus_group maskstims {
 var option_selectors_in_window = [0, 0, 0, 0, 0, 0]
 stimulus_group option_stims_selectors {
     for_each_option_stim {
-        circular_fixation_point 'option_stim_${option_stim_index}' (
+        ellipse 'option_stim_${option_stim_index}' (
 	        alpha_multiplier = view_options
-	        trigger_width = fixation_width
-            trigger_watch_x = eye_h
-            trigger_watch_y = eye_v
-            trigger_flag = option_selectors_in_window[${option_stim_index}]
             color = 1,0,0
             x_size = fixation_point_size
             x_position = option_stim_selector_position_x
@@ -139,6 +135,25 @@ stimulus_group option_stims_selectors {
 	    )
     }
 }
+var eye_in_selector = 0
+
+circular_fixation_point selector_fixator (
+    alpha_multiplier = view_options
+    trigger_width = fixation_width
+    trigger_watch_x = eye_h
+    trigger_watch_y = eye_v
+    trigger_flag = eye_in_selector
+    color = 1,0,0
+    x_size = fixation_point_size
+    x_position = option_selector_distance * cos(2 * pi() / num_options * end_stim_index)
+    y_position = option_selector_distance * sin(2 * pi() / num_options * end_stim_index)
+)
+
+%define display_selector()
+    queue_stimulus (selector_fixator)
+    update_display ()
+%end
+
 
 stimulus_group option_stims {
     for_each_option_stim {
