@@ -33,9 +33,13 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
             end_stim_index = end_idx[pair_index]
             right = [] if end_stim_index == num_stims - 1 else np.arange(end_stim_index + 1, num_stims)
             # right = np.arange(end_stim_index + 1, np.amin((num_stims - 1, end_stim_index + 1)))
-            meta['options_list'] = np.random.permutation(np.concatenate(([end_stim_index],
+            num_options = np.random.randint(2, num_stims)
+            meta['num_options'].append(num_options)
+            # options_list = np.random.choice(np.concatenate((np.arange(0, end_stim_index), np.arange(end_stim_index+1, num_stims))), num_)
+            options_list = np.random.permutation(np.concatenate(([end_stim_index],
                                                                         np.arange(0, end_stim_index),
                                                                         right)))
+            meta['options_list'].append(options_list)
             # stim_dist = np.random.geometric(prob, size=num_stims)
             # stim_dist = np.clip(stim_dist, 1, max_dist)
             stim_dist = np.ones((num_stims))

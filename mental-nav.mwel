@@ -101,6 +101,7 @@ var options_list = [0, 0, 0, 0, 0, 0]
     stim_dist_cum = py_stim_dist_cum
     py_meta_index = py_meta_index
     options_list = py_options_list
+    num_options = py_num_options
     // stim_drift_direction = py_stim_drift_direction
 %end
 
@@ -115,6 +116,7 @@ var options_list = [0, 0, 0, 0, 0, 0]
     stim_dist_cum = py_stim_dist_cum
     py_meta_index = py_meta_index
     options_list = py_options_list
+    num_options = py_num_options
     // stim_drift_direction = py_stim_drift_direction
 %end
 

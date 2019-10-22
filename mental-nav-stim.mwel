@@ -22,6 +22,7 @@ group 'Python parameters' {
     var py_meta_index = 0
     var py_stim_drift_direction = 0
     var py_options_list = []
+    var py_num_options = 0
 }
 
 %define num_stims = 6
