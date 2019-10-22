@@ -95,11 +95,10 @@ protocol 'Mental Navigation - Sequential' {
     block (nsamples = num_trials_per_block) {
         trial {
             update_trial_params_from_meta_ones()
-            report ('$options_list' )
+            report ('$py_options_list' )
             for_each_option_stim {
                 list {
                     live_queue_stimulus(option_stims[option_stim_index])
-                    // live_queue_stimulus(option_stims_selectors[option_stim_index])
                 }
             }
             task {
@@ -158,19 +157,105 @@ protocol 'Mental Navigation - Sequential' {
                     report ("*********PRESENT OPTIONS**********")
                     view_options = 1
                     display_option_selectors()
-                    wait (1s)
                     simulate_fixation_choice()
+                    wait (3s)
                     start_timer (
                         timer = selection_timer
                         duration = 2s
                     )
                     goto (
-                        target = 'Success'
+                        target = 'Selected 0'
                         when = eye_in_selector_0 and (not saccade)
+                    )
+                    goto (
+                        target = 'Selected 1'
+                        when = eye_in_selector_1 and (not saccade)
+                    )
+                    goto (
+                        target = 'Selected 2'
+                        when = eye_in_selector_2 and (not saccade)
+                    )
+                    goto (
+                        target = 'Selected 3'
+                        when = eye_in_selector_3 and (not saccade)
+                    )
+                    goto (
+                        target = 'Selected 4'
+                        when = eye_in_selector_4 and (not saccade)
+                    )
+                    goto (
+                        target = 'Selected 5'
+                        when = eye_in_selector_5 and (not saccade)
                     )
                     goto (
                         target = 'Failure'
                         when = timer_expired(selection_timer)
+                    )
+                }
+                state 'Selected 0' {
+                     report ("************SELECTED 0************")
+                     goto (
+                        target = 'Success'
+                        when = end_stim_index == 0
+                    )
+                    goto (
+                        target = 'Failure'
+                        when = end_stim_index != 0
+                    )
+                }
+                state 'Selected 1' {
+                    report ("************SELECTED 1************")
+                    goto (
+                        target = 'Success'
+                        when = end_stim_index == 1
+                    )
+                    goto (
+                        target = 'Failure'
+                        when = end_stim_index != 1
+                    )
+                }
+                state 'Selected 2' {
+                    report ("************SELECTED 2************")
+                    goto (
+                        target = 'Success'
+                        when = end_stim_index == 2
+                    )
+                    goto (
+                        target = 'Failure'
+                        when = end_stim_index != 2
+                    )
+                }
+                state 'Selected 3' {
+                    report ("************SELECTED 3************")
+                    goto (
+                        target = 'Success'
+                        when = end_stim_index == 3
+                    )
+                    goto (
+                        target = 'Failure'
+                        when = end_stim_index != 3
+                    )
+                }
+                state 'Selected 4' {
+                    report ("************SELECTED 4************")
+                    goto (
+                        target = 'Success'
+                        when = end_stim_index == 4
+                    )
+                    goto (
+                        target = 'Failure'
+                        when = end_stim_index != 4
+                    )
+                }
+                state 'Selected 5' {
+                    report ("************SELECTED 5************")
+                    goto (
+                        target = 'Success'
+                        when = end_stim_index == 5
+                    )
+                    goto (
+                        target = 'Failure'
+                        when = end_stim_index != 5
                     )
                 }
                 state 'Success' {

@@ -17,6 +17,7 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
         'end_stim_index': [],
         'pair_index': [],
         'options_list': [],
+        'num_options': []
     }
     start_idx = np.repeat(np.linspace(0, num_stims - 1, num=num_stims), num_stims-1)
     end_idx = np.tile(np.linspace(0, num_stims - 1, num=num_stims), num_stims-1)

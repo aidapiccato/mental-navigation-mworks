@@ -167,7 +167,7 @@ circular_fixation_point option_selector_0 (
     x_position = option_stim_selector_position_x (0)
     y_position = option_stim_selector_position_y (0)
     x_size = 1
-    color = 1, 0, 0
+    color = (1 - eye_in_selector_0), eye_in_selector_0, 0
 )
 
 circular_fixation_point option_selector_1 (
@@ -178,7 +178,7 @@ circular_fixation_point option_selector_1 (
     x_position = option_stim_selector_position_x (1)
     y_position = option_stim_selector_position_y (1)
     x_size = 1
-    color = 1, 0, 0
+    color = (1 - eye_in_selector_1), eye_in_selector_1, 0
 )
 
 circular_fixation_point option_selector_2 (
@@ -189,7 +189,7 @@ circular_fixation_point option_selector_2 (
     x_position = option_stim_selector_position_x (2)
     y_position = option_stim_selector_position_y (2)
     x_size = 1
-    color = 1, 0, 0
+    color = (1 - eye_in_selector_2), eye_in_selector_2, 0
 )
 circular_fixation_point option_selector_3 (
     trigger_width = fixation_width
@@ -199,7 +199,7 @@ circular_fixation_point option_selector_3 (
     x_position = option_stim_selector_position_x (3)
     y_position = option_stim_selector_position_y (3)
     x_size = 1
-    color = 1, 0, 0
+    color = (1 - eye_in_selector_3), eye_in_selector_3, 0
 )
 
 circular_fixation_point option_selector_4 (
@@ -210,7 +210,7 @@ circular_fixation_point option_selector_4 (
     x_position = option_stim_selector_position_x (4)
     y_position = option_stim_selector_position_y (4)
     x_size = 1
-    color = 1, 0, 0
+    color = (1 - eye_in_selector_4), eye_in_selector_4, 0
 )
 
 circular_fixation_point option_selector_5 (
@@ -221,16 +221,16 @@ circular_fixation_point option_selector_5 (
     x_position = option_stim_selector_position_x (5)
     y_position = option_stim_selector_position_y (5)
     x_size = 1
-    color = 1, 0, 0
+    color = (1 - eye_in_selector_5), eye_in_selector_5, 0
 )
 
 %define display_option_selectors()
-    queue_stimulus(option_selector_0)
-    queue_stimulus(option_selector_1)
-    queue_stimulus(option_selector_2)
-    queue_stimulus(option_selector_3)
-    queue_stimulus(option_selector_4)
-    queue_stimulus(option_selector_5)
+    live_queue_stimulus(option_selector_0)
+    live_queue_stimulus(option_selector_1)
+    live_queue_stimulus(option_selector_2)
+    live_queue_stimulus(option_selector_3)
+    live_queue_stimulus(option_selector_4)
+    live_queue_stimulus(option_selector_5)
     update_display()
 %end
 
