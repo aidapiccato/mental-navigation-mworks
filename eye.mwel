@@ -70,12 +70,11 @@ fake_monkey eye_tracker {
      )
 %end
 
-var fake_eye_choice = 0
-%define simulate_fixation_choice ()
+%define simulate_fixation_choice (index)
     fake_monkey_saccade_and_fixate (
         fake_monkey = eye_tracker
-        h = option_selector_distance * cos(2 * pi() / num_options * fake_eye_choice)
-        v = option_selector_distance * sin(2 * pi() / num_options * fake_eye_choice)
+        h = option_selector_distance * cos(2 * pi() / num_options * index)
+        v = option_selector_distance * sin(2 * pi() / num_options * index)
         duration = 10s
      )
 %end

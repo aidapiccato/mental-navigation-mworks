@@ -20,7 +20,9 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
         'num_options': []
     }
     start_idx = np.repeat(np.linspace(0, num_stims - 1, num=num_stims), num_stims-1)
-    end_idx = np.tile(np.linspace(0, num_stims - 1, num=num_stims), num_stims-1)
+    ## end_idx = np.tile(np.linspace(0, num_stims - 1, num=num_stims), num_stims-1)
+    end_idx = np.concatenate([np.asarray(np.delete(np.arange(num_stims), i)) for i in range(num_stims)])
+    print(end_idx)
     num_pairs = num_stims * (num_stims - 1)
     for t in range(n_condition_repeats):
         for pair_index in range(num_pairs):
@@ -41,9 +43,8 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
                                                                         np.arange(0, end_stim_index),
                                                                         right)))
             meta['options_list'].append(options_list)
-            # stim_dist = np.random.geometric(prob, size=num_stims)
-            # stim_dist = np.clip(stim_dist, 1, max_dist)
-            stim_dist = np.ones((num_stims))
+            stim_dist = np.random.geometric(prob, size=num_stims)
+            stim_dist = np.clip(stim_dist, 1, max_dist)
             stim_dist_cum = np.cumsum(stim_dist)
             meta['stim_dist_cum'].append(stim_dist_cum)
 

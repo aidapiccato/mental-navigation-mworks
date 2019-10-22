@@ -1,5 +1,6 @@
-%include 'eye'
 %include 'mental-nav-stim'
+%include 'eye'
+
 %include 'keyboard_device'
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,8 +104,11 @@ protocol 'Mental Navigation - Sequential' {
             }
             task {
                 state 'Begin fixation' {
+
+                    in_fixation = 1
                     report ("*********BEGIN FIXATION**********")
                     queue_stimulus (fixation_point)
+                    queue_stimulus(main_mask)
                     update_display ()
                     wait (1s)
                     simulate_fixation ()
@@ -114,10 +118,13 @@ protocol 'Mental Navigation - Sequential' {
                     )
                 }
                 state 'Upon fixation' {
+                    if (nconsecsuccess == nconsecsucc_increment) {
+                        nconsecsuccess = 0
+                        m_alpha = min(1, alpha_inc + m_alpha)
+                    }
                     report ("*********UPON FIXATION**********")
                     dequeue_stimulus (fixation_point)
-                    update_display()
-                    begin_drift = 1
+                    update_display ()
                     stim_drift_wrap_var = stim_drift_wrap
                     stim_drift_symb_dist_var = stim_drift_symb_dist
                     stim_drift_spat_dist_var = stim_drift_spat_dist
@@ -130,13 +137,16 @@ protocol 'Mental Navigation - Sequential' {
                     report ('stim_dist_cum = $stim_dist_cum')
                     stim_offset = -start_stim_index * (stim_size) - stim_dist_cum[start_stim_index] * stim_padding
                     stim_drift_fixed = 0
-                    wait (3s)
+                    in_fixation = 0
+                    wait (1s)
                     goto (
                         target = 'Begin drift'
                     )
                 }
                 state 'Begin drift' {
                     report ("*********BEGIN DRIFT**********")
+
+                    begin_drift = 1
                     stim_drift_direction = py_stim_drift_direction
                     stim_drift_start_time = next_frame_time()
                     goto (
@@ -146,6 +156,7 @@ protocol 'Mental Navigation - Sequential' {
                 }
                 state 'End drift' {
                     report ("*********END DRIFT**********")
+
                     stim_drift_fixed = stim_drift
                     stim_drift_direction = 0
                     wait (1s)
@@ -155,9 +166,11 @@ protocol 'Mental Navigation - Sequential' {
                 }
                 state 'Present options' {
                     report ("*********PRESENT OPTIONS**********")
+                    begin_drift = 0
                     view_options = 1
                     display_option_selectors()
-                    simulate_fixation_choice()
+                    wait (2s)
+                    simulate_fixation_choice(options_list[end_stim_index])
                     wait (3s)
                     start_timer (
                         timer = selection_timer
@@ -261,12 +274,14 @@ protocol 'Mental Navigation - Sequential' {
                 state 'Success' {
                     report ("*********SUCCESS**********")
                     nsuccess = nsuccess + 1
+                    nconsecsuccess = nconsecsuccess + 1
                     wait (1s)
                     goto ('End trial')
                 }
                 state 'Failure' {
                     report ("*********FAILURE**********")
                     nfailure = nfailure + 1
+                    nconsecsuccess = 0
                     wait (1s)
                     goto ('End trial')
                 }
@@ -275,7 +290,6 @@ protocol 'Mental Navigation - Sequential' {
                     remove_option_selectors()
                     accept_selections (trial_index)
                     reset_vars()
-
                     yield ()
                 }
             }

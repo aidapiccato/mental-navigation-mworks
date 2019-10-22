@@ -7,12 +7,13 @@ var stim_padding = 2
 var stim_position_y = 1
 var view_options = 0
 %define num_options = 6
-
+var nconsecsucc_increment = 3
+var alpha_inc = 0.05
 group 'Behavior' {
     var nsuccess = 0
     var nfailure = 0
     var sel_index = 0
-
+    var nconsecsuccess = 0
 }
 group 'Python parameters' {
     var py_start_stim_index = 0
@@ -27,7 +28,6 @@ group 'Python parameters' {
 
 %define num_stims = 6
 var num_pairs = num_stims * (num_stims - 1)
-
 
 group 'Sequence variables' {
 
@@ -111,19 +111,31 @@ var option_selector_distance = 13
 %define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * options_list[index])
 %define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
 var begin_drift = 0
-%define view_stim = begin_drift * (view_options * (1 - (${stim_index} != end_stim_index)) + (1 - view_options))
+var in_fixation = 0
+var view_mask = 0
+%define view_stim_mask = (1-in_fixation) * (view_options * (1 - (${stim_index} != end_stim_index)) + (1 - view_options))
+%define view_stim = (1-in_fixation) * ((1-view_options) + (view_options)  * (1 - (${stim_index} != end_stim_index)))
+// %define view_mask = (1-in_fixation)
 var m_alpha = 0
+%define alpha_multiplier_drift = min(max(m_alpha * abs(stim_drift), 0), 1)
+%define alpha_multiplier_fixed = min(max(m_alpha * abs(stim_drift_fixed), 0), 1)
 
-%define alpha_multiplier = m_alpha * stim_drift / stim_drift_speed
+
+mask main_mask(
+    mask = rectangle
+    x_size = stim_size * 3
+    x_position = 0
+    y_position = 0
+)
 
 stimulus_group mask_stims {
     for_each_stim {
         rectangle 'mask_stim_${stim_index}' (
-            color = 0.7, 0.7, 0.7
+            color = 0.1, 0.1, 0.1
             x_size = stim_size
             x_position = stim_position_x_wrapped
             y_position = 0
-	        alpha_multiplier = view_stim *  max(min(alpha_multiplier, 1), 0)
+            alpha_multiplier = view_stim * (abs(stim_drift_direction) * alpha_multiplier_drift + (1-abs(stim_drift_direction)) * alpha_multiplier_fixed)
 	    )
     }
 }
