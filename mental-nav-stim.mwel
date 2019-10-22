@@ -9,6 +9,7 @@ var view_options = 0
 %define num_options = 6
 var nconsecsucc_increment = 3
 var alpha_inc = 0.05
+var depth_display = 1
 group 'Behavior' {
     var nsuccess = 0
     var nfailure = 0
@@ -110,6 +111,7 @@ var option_selector_distance = 13
 %define option_stim_selector_position_x (index) option_selector_distance * cos(2 * pi() / num_options * options_list[index])
 %define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * options_list[index])
 %define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
+%define stim_size_x = 
 var begin_drift = 0
 var in_fixation = 0
 var view_mask = 0
@@ -147,11 +149,28 @@ stimulus_group option_stims {
             x_size = option_stim_size
             x_position = option_stim_position_x
             y_position = option_stim_position_y
-	        alpha_multiplier = view_options
+	        alpha_multiplier =  view_options
 	    )
     }
 }
 
+rectangle center_indicator (
+    color = 0, 0, 0
+    x_size = stim_size + 0.75
+    y_size = stim_size + 0.75
+    y_position = 0
+    x_position = 0
+    alpha_multiplier = view_stim
+)
+
+rectangle center_indicator_fill (
+    color = 0.5, 0.5, 0.5
+    x_size = stim_size + 0.25
+    y_size = stim_size + 0.25
+    y_position = 0
+    x_position = 0
+    alpha_multiplier = view_stim
+)
 stimulus_group img_stims {
     for_each_stim {
         image_file 'img_stim_${stim_index}' (

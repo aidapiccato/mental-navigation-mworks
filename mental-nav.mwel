@@ -12,6 +12,7 @@ var br=.5
 var bg=.5
 var bb=.5
 
+var margin = 10e-4
 stimulus_display (
     background_color = br, bg, bb
     redraw_on_every_refresh = true
@@ -85,6 +86,8 @@ var options_list = [0, 0, 0, 0, 0, 0]
 protocol 'Mental Navigation - Sequential' {
     start_io_device (eye_tracker)
     start_io_device (keyboard)
+    queue_stimulus (center_indicator)
+    queue_stimulus (center_indicator_fill)
     for_each_stim {
         list {
 	        live_queue_stimulus (img_stims[stim_index])
@@ -149,9 +152,10 @@ protocol 'Mental Navigation - Sequential' {
                     begin_drift = 1
                     stim_drift_direction = py_stim_drift_direction
                     stim_drift_start_time = next_frame_time()
+
                     goto (
                         target = 'End drift'
-                        when = (stim_drift_direction == 1 and stim_drift >= stim_drift_end_pos) or (stim_drift_direction == -1 and stim_drift <= stim_drift_end_neg)
+                        when = (stim_drift_direction == 1 and stim_drift >= stim_drift_end_pos - margin) or (stim_drift_direction == -1 and stim_drift <= stim_drift_end_neg + margin)
                     )
                 }
                 state 'End drift' {
