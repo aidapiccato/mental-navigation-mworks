@@ -9,7 +9,10 @@ var view_options = 0
 %define num_options = 6
 
 group 'Behavior' {
-    var selection_index = -1
+    var nsuccess = 0
+    var nfailure = 0
+    var sel_index = 0
+
 }
 group 'Python parameters' {
     var py_start_stim_index = 0
@@ -18,6 +21,7 @@ group 'Python parameters' {
     var py_stim_dist_cum = []
     var py_meta_index = 0
     var py_stim_drift_direction = 0
+    var py_options_list = []
 }
 
 %define num_stims = 6
@@ -100,10 +104,10 @@ var stim_drift_min_var = stim_drift_min
 var option_distance = 8
 var option_stim_size = 5
 var option_selector_distance = 13
-%define option_stim_position_x = option_distance * cos(2 * pi() / num_options * ${option_stim_index})
-%define option_stim_position_y = option_distance * sin(2 * pi() / num_options * ${option_stim_index})
-%define option_stim_selector_position_x = option_selector_distance * cos(2 * pi() / num_options * ${option_stim_index})
-%define option_stim_selector_position_y = option_selector_distance * sin(2 * pi() / num_options * ${option_stim_index})
+%define option_stim_position_x = option_distance * cos(2 * pi() / num_options * ${options_list}[${option_stim_index}])
+%define option_stim_position_y = option_distance * sin(2 * pi() / num_options * ${options_list}[${option_stim_index}])
+%define option_stim_selector_position_x = option_selector_distance * cos(2 * pi() / num_options * ${options_list}[${option_stim_index}])
+%define option_stim_selector_position_y = option_selector_distance * sin(2 * pi() / num_options * ${options_list}[${option_stim_index}])
 %define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
 var begin_drift = 0
 %define view_stim = begin_drift * (view_options * (1 - (${stim_index} != end_stim_index)) + (1 - view_options))
@@ -111,7 +115,7 @@ var m_alpha = 0
 
 %define alpha_multiplier = m_alpha * stim_drift / stim_drift_speed
 
-stimulus_group maskstims {
+stimulus_group mask_stims {
     for_each_stim {
         rectangle 'mask_stim_${stim_index}' (
             color = 0.7, 0.7, 0.7
@@ -124,41 +128,32 @@ stimulus_group maskstims {
 }
 
 var option_selectors_in_window = [0, 0, 0, 0, 0, 0]
+
+var eye_in_selector = false
 stimulus_group option_stims_selectors {
     for_each_option_stim {
-        ellipse 'option_stim_${option_stim_index}' (
-	        alpha_multiplier = view_options
+        circular_fixation_point 'selector_fixator_${option_stim_index}' (
+            alpha_multiplier = view_options
+            trigger_width = fixation_width
+            trigger_watch_x = eye_h
+            trigger_watch_y = eye_v
+            trigger_flag = eye_in_selector
             color = 1,0,0
             x_size = fixation_point_size
-            x_position = option_stim_selector_position_x
-            y_position = option_stim_selector_position_y
-	    )
+            x_position = option_selector_distance * cos(2 * pi() / num_options * ${option_stim_index})
+            y_position = option_selector_distance * sin(2 * pi() / num_options * ${option_stim_index})
+        )
     }
 }
-var eye_in_selector = 0
 
-circular_fixation_point selector_fixator (
-    alpha_multiplier = view_options
-    trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
-    trigger_flag = eye_in_selector
-    color = 1,0,0
-    x_size = fixation_point_size
-    x_position = option_selector_distance * cos(2 * pi() / num_options * end_stim_index)
-    y_position = option_selector_distance * sin(2 * pi() / num_options * end_stim_index)
-)
 
-%define display_selector()
-    queue_stimulus (selector_fixator)
-    update_display ()
-%end
+
 
 
 stimulus_group option_stims {
     for_each_option_stim {
         image_file 'img_option_stim_${option_stim_index}' (
-            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${option_stim_index}.jpg"
+            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${option_stim_index}.jpg"
             x_size = option_stim_size
             x_position = option_stim_position_x
             y_position = option_stim_position_y
@@ -170,7 +165,7 @@ stimulus_group option_stims {
 stimulus_group img_stims {
     for_each_stim {
         image_file 'img_stim_${stim_index}' (
-            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${stim_index}.jpg"
+            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${stim_index}.jpg"
             x_size = stim_size
             x_position = stim_position_x_wrapped
 	        y_position = 0

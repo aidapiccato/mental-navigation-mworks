@@ -3,9 +3,6 @@
 var eye_h_raw = 0
 var eye_v_raw = 0
 
-var nsuccess = 0
-var nfailure = 0
-
 var eye_h_calibrated = 0
 var eye_v_calibrated = 0
 
@@ -91,6 +88,7 @@ selection trial_index (
     autoreset = YES
 )
 
+var options_list = [0, 0, 0, 0, 0, 0]
 
 %define update_trial_params_from_meta ()
     trials_from_meta = 1
@@ -102,6 +100,7 @@ selection trial_index (
     pair_index = py_pair_index
     stim_dist_cum = py_stim_dist_cum
     py_meta_index = py_meta_index
+    options_list = py_options_list
     // stim_drift_direction = py_stim_drift_direction
 %end
 
@@ -115,6 +114,7 @@ selection trial_index (
     pair_index = py_pair_index
     stim_dist_cum = py_stim_dist_cum
     py_meta_index = py_meta_index
+    options_list = py_options_list
     // stim_drift_direction = py_stim_drift_direction
 %end
 
@@ -165,23 +165,25 @@ protocol 'Mental Navigation - Sequential' {
     for_each_stim {
         list {
 	        live_queue_stimulus (img_stims[stim_index])
-	        live_queue_stimulus (maskstims[stim_index])
-        }
-    }
-    for_each_option_stim {
-        list {
-            live_queue_stimulus(option_stims[option_stim_index])
-            live_queue_stimulus(option_stims_selectors[option_stim_index])
+	        live_queue_stimulus (mask_stims[stim_index])
         }
     }
     reset_selection (trial_index)
     run_python_file('mental-nav_utils.py')
     block (nsamples = num_trials_per_block) {
         trial {
+            update_trial_params_from_meta_ones()
+            report ('$options_list' )
+            for_each_option_stim {
+                list {
+                    live_queue_stimulus(option_stims[option_stim_index])
+                    live_queue_stimulus(option_stims_selectors[option_stim_index])
+                }
+            }
             task {
                 state 'Begin fixation' {
                     report ("*********BEGIN FIXATION**********")
-                    live_queue_stimulus (fixation_point)
+                    queue_stimulus (fixation_point)
                     update_display ()
                     wait (1s)
                     simulate_fixation ()
@@ -194,7 +196,6 @@ protocol 'Mental Navigation - Sequential' {
                     report ("*********UPON FIXATION**********")
                     dequeue_stimulus (fixation_point)
                     update_display()
-                    update_trial_params_from_meta_ones()
                     begin_drift = 1
                     stim_drift_wrap_var = stim_drift_wrap
                     stim_drift_symb_dist_var = stim_drift_symb_dist
@@ -234,7 +235,6 @@ protocol 'Mental Navigation - Sequential' {
                 state 'Present options' {
                     report ("*********PRESENT OPTIONS**********")
                     view_options = 1
-                    display_selector ()
                     wait (1s)
                     simulate_fixation_choice()
                     start_timer (
@@ -248,13 +248,11 @@ protocol 'Mental Navigation - Sequential' {
                     goto (
                         target = 'Failure'
                         when = timer_expired(selection_timer)
-
                     )
                 }
                 state 'Success' {
                     report ("*********SUCCESS**********")
                     nsuccess = nsuccess + 1
-
                     wait (1s)
                     goto ('End trial')
                 }

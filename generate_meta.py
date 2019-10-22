@@ -15,7 +15,8 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
         'meta_index': [],
         'start_stim_index': [],
         'end_stim_index': [],
-        'pair_index': []
+        'pair_index': [],
+        'options_list': [],
     }
     start_idx = np.repeat(np.linspace(0, num_stims - 1, num=num_stims), num_stims-1)
     end_idx = np.tile(np.linspace(0, num_stims - 1, num=num_stims), num_stims-1)
@@ -38,7 +39,6 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
             # stim_dist = np.random.geometric(prob, size=num_stims)
             # stim_dist = np.clip(stim_dist, 1, max_dist)
             stim_dist = np.ones((num_stims))
-            # stim_dist[0] = 0
             stim_dist_cum = np.cumsum(stim_dist)
             meta['stim_dist_cum'].append(stim_dist_cum)
 

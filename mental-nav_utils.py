@@ -1,7 +1,7 @@
 import math
 import pickle as pk
 
-dir_path = "/Users/aidapiccato/PycharmProjects/mental-navigation-mworks/pickle_meta"
+dir_path = "/Users/apiccato/PycharmProjects/mental-navigation-mworks/pickle_meta"
 meta_fn_tag = getvar('trials_from_meta')
 
 fn = '%s/meta_ones.pkl' % dir_path
@@ -14,6 +14,7 @@ def get_metaparameters():
 	setvar('py_pair_index', int(meta['pair_index'][idx]))
 	setvar('py_meta_index', meta['meta_index'][idx])
 	setvar('py_stim_dist_cum', meta['stim_dist_cum'][idx])
+	setvar('py_options_list', meta['options_list'])
 	setvar('py_stim_drift_direction', meta['stim_drift_direction'][idx])
 	return
 
