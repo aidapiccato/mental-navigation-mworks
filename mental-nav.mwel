@@ -33,8 +33,8 @@ selection trial_index (
     autoreset = YES
 )
 
-var options_pos = [0, 0, 0, 0, 0, 0]
-var options_bin = [0, 0, 0, 0, 0, 0]
+var options_pos = [0, 0, 0, 0, 0, 0, 0, 0]
+var options_bin = [0, 0, 0, 0, 0, 0, 0, 0]
 
 %define update_trial_params_from_meta ()
     trials_from_meta = 1
@@ -49,7 +49,7 @@ var options_bin = [0, 0, 0, 0, 0, 0]
     options_bin = py_options_bin
     options_pos = py_options_pos
     num_options = py_num_options
-    // stim_drift_direction = py_stim_drift_direction
+    stim_drift_direction = py_stim_drift_direction
 %end
 
 %define update_trial_params_from_meta_ones ()
@@ -65,18 +65,24 @@ var options_bin = [0, 0, 0, 0, 0, 0]
     options_bin = py_options_bin
     options_pos = py_options_pos
     num_options = py_num_options
-    // stim_drift_direction = py_stim_drift_direction
+    stim_drift_direction = py_stim_drift_direction
 %end
 
 %define reset_vars ()
     start_stim_index = 0
     end_stim_index = 0
     pair_index = 0
-    stim_offset = 0
     stim_drift_direction = 0
-    view_options = 0
-    begin_drift = 0
     alpha_multiplier_fixed = 0
+    stim_drift_fixed = 0
+    fixation = 0
+    pre_drift = 0
+    drift = 0
+    pre_choice = 0
+    choice = 0
+    feedback = 0
+    failure = 0
+    success = 0
     stim_drift_fixed = 0
 %end
 
@@ -96,12 +102,14 @@ protocol 'Mental Navigation - Sequential' {
 	        live_queue_stimulus (mask_stims[stim_index])
         }
     }
-    live_queue_stimulus (mask_left)
-    live_queue_stimulus (mask_right)
+    live_queue_stimulus (window_mask_left)
+    live_queue_stimulus (window_mask_right)
+    display_option_selectors()
     reset_selection (trial_index)
     run_python_file('mental-nav_utils.py')
     block (nsamples = num_trials_per_block) {
         trial {
+            fixation = 1
             update_trial_params_from_meta_ones()
             for_each_option_stim {
                 list {
@@ -110,82 +118,101 @@ protocol 'Mental Navigation - Sequential' {
             }
             task {
                 state 'Begin fixation' {
-                    failure = 0
-                    success = 0
-                    view_indicator = 0
-                    in_fixation = 1
                     report ("*********BEGIN FIXATION**********")
-                    queue_stimulus (fixation_point)
 
-                    update_display ()
-                    wait (1s)
-                    simulate_fixation ()
-                    goto (
-                        target = 'Upon fixation'
-                        when = eye_in_window and (not saccade)
-                    )
-                }
-                state 'Upon fixation' {
-                    view_indicator = 1
-                    // can put this in method
+                     // can put this in separate method
                     if (nconsecsuccess == nconsecsucc_increment) {
                         nconsecsuccess = 0
                         m_alpha = min(1, alpha_inc + m_alpha)
                     }
-                    report ("*********UPON FIXATION**********")
+
+                    fixation = 1
+
+                    queue_stimulus (fixation_point)
+
+                    update_display ()
+
+                    wait (1s)
+                    simulate_fixation ()
+
+                    goto (
+                        target = 'Pre drift'
+                        when = eye_in_window and (not saccade)
+                    )
+
+                }
+                state 'Pre drift' {
+                    report ("*********PRE DRIFT**********")
+
+                    fixation = 0
+                    pre_drift = 1
 
                     dequeue_stimulus (fixation_point)
                     update_display ()
-                    stim_drift_wrap_var = stim_drift_wrap
-                    stim_drift_symb_dist_var = stim_drift_symb_dist
-                    stim_drift_spat_dist_var = stim_drift_spat_dist
+
                     report ('direction = $py_stim_drift_direction')
                     report ('start index = $start_stim_index')
                     report ('end index = $end_stim_index')
-                    report ('stim_drift_wrap = $stim_drift_wrap_var')
-                    report ('stim_drift_symb_dist = $stim_drift_symb_dist_var')
-                    report ('stim_drift_spat_dist = $stim_drift_spat_dist_var')
                     report ('stim_dist_cum = $stim_dist_cum')
-                    stim_offset = -start_stim_index * (stim_size) - stim_dist_cum[start_stim_index] * stim_padding
-                    stim_drift_fixed = 0
-                    in_fixation = 0
-                    wait (1s)
+
+                    wait (pre_drift_dur)
+
                     goto (
                         target = 'Begin drift'
                     )
                 }
                 state 'Begin drift' {
                     report ("*********BEGIN DRIFT**********")
-                    begin_drift = 1
 
-                    stim_drift_direction = py_stim_drift_direction
+                    pre_drift = 0
+                    drift = 1
+
+                    // stim_drift_direction = py_stim_drift_direction
                     stim_drift_start_time = next_frame_time()
+
                     goto (
-                        target = 'End drift'
+                        target = 'Post drift'
                         // Make line below more legible
                         when = (stim_drift_direction == 1 and stim_drift >= stim_drift_end_pos - margin) or (stim_drift_direction == -1 and stim_drift <= stim_drift_end_neg + margin)
                     )
                 }
-                state 'End drift' {
-                    report ("*********END DRIFT**********")
+                state 'Post drift' {
+                    report ("*********POST DRIFT**********")
                     stim_drift_fixed = stim_drift
                     alpha_multiplier_fixed = alpha_multiplier_drift
-                    stim_drift_direction = 0
-                    wait (1s)
-                    goto (
-                        target = 'Present options'
-                    )
+
+                    drift = 0
+                    post_drift = 1
+
+
+                    // stim_drift_direction = 0
+
+                    wait (post_drift_dur)
+
+                    goto  ('Pre choice')
                 }
-                state 'Present options' {
-                    report ("*********PRESENT OPTIONS**********")
-                    begin_drift = 0
-                    view_options = 1
-                    display_option_selectors()
+                state 'Pre choice' {
+                    report ("*********PRE CHOICE**********")
+
+                    post_drift = 0
+                    pre_choice = 1
+
+                    wait (pre_choice_dur)
+
+                    goto ('Choice')
+                }
+                state 'Choice' {
+                    report ("*********CHOICE**********")
+
+                    pre_choice = 0
+                    choice = 1
+
                     wait (2s)
                     simulate_fixation_choice(options_pos[end_stim_index])
+
                     start_timer (
-                        timer = selection_timer
-                        duration = 2s
+                        timer = choice_timer
+                        duration = choice_dur
                     )
                     goto (
                         target = 'Selected 0'
@@ -213,7 +240,7 @@ protocol 'Mental Navigation - Sequential' {
                     )
                     goto (
                         target = 'Failure'
-                        when = timer_expired(selection_timer)
+                        when = timer_expired(choice_timer)
                     )
                 }
                 state 'Selected 0' {
@@ -282,8 +309,32 @@ protocol 'Mental Navigation - Sequential' {
                         when = end_stim_index != 5
                     )
                 }
+                state 'Selected 6' {
+                    report ("************SELECTED 6************")
+                    goto (
+                        target = 'Success'
+                        when = end_stim_index == 6
+                    )
+                    goto (
+                        target = 'Failure'
+                        when = end_stim_index != 6
+                    )
+                }
+                state 'Selected 7' {
+                    report ("************SELECTED 7************")
+                    goto (
+                        target = 'Success'
+                        when = end_stim_index == 7
+                    )
+                    goto (
+                        target = 'Failure'
+                        when = end_stim_index != 7
+                    )
+                }
                 state 'Success' {
                     report ("*********SUCCESS**********")
+                    choice = 0
+                    feedback = 1
                     nsuccess = nsuccess + 1
                     nconsecsuccess = nconsecsuccess + 1
                     success = 1
@@ -292,15 +343,17 @@ protocol 'Mental Navigation - Sequential' {
                 }
                 state 'Failure' {
                     report ("*********FAILURE**********")
+                    choice = 0
+                    feedback = 1
                     failure = 1
                     nfailure = nfailure + 1
                     nconsecsuccess = 0
-                    wait (1s)
+                    wait (feedback_dur)
                     goto ('End trial')
                 }
                 state 'End trial' {
                     report ("*********END TRIAL**********")
-                    remove_option_selectors()
+                    // remove_option_selectors()
                     accept_selections (trial_index)
                     reset_vars()
                     yield ()
@@ -308,6 +361,7 @@ protocol 'Mental Navigation - Sequential' {
             }
         }
     }
+
     stop_io_device (eye_tracker)
     stop_io_device (keyboard)
 }
