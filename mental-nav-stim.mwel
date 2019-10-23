@@ -10,6 +10,7 @@ var view_options = 0
 var nconsecsucc_increment = 3
 var alpha_inc = 0.05
 var depth_display = 1
+
 group 'Behavior' {
     var nsuccess = 0
     var nfailure = 0
@@ -76,10 +77,10 @@ group 'Stimulus drift variables' {
        )
 %end
 
-
+%define cycle = end_stim_index == start_stim_index
 %define stim_drift_wrap = (py_stim_drift_direction == -1 and start_stim_index > end_stim_index) or (py_stim_drift_direction == 1 and end_stim_index > start_stim_index)
-%define stim_drift_symb_dist = abs(stim_drift_wrap * num_stims - abs(start_stim_index - end_stim_index))
-%define stim_drift_spat_dist = abs(stim_drift_wrap * stim_dist_cum[num_stims - 1] + py_stim_drift_direction * (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index]))
+%define stim_drift_symb_dist = (1 - cycle) * abs(stim_drift_wrap * num_stims - abs(start_stim_index - end_stim_index)) + (cycle) * num_stims
+%define stim_drift_spat_dist = (1 - cycle) * abs(stim_drift_wrap * stim_dist_cum[num_stims - 1] + py_stim_drift_direction * (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index])) + (cycle) * stim_dist_cum[num_stims - 1]
 
 var stim_drift_wrap_var = stim_drift_wrap
 var stim_drift_symb_dist_var = stim_drift_symb_dist
@@ -88,21 +89,18 @@ var stim_drift_spat_dist_var = stim_drift_spat_dist
 %define stim_drift_max = display_bounds('right') - stim_offset
 %define stim_drift_min = display_bounds('left') - stim_offset - (num_stims - 1) * (stim_size) - stim_dist_cum[num_stims - 1] * stim_padding
 
-var stim_drift_max_var = stim_drift_max
-var stim_drift_min_var = stim_drift_min
-
-
 %define stim_drift = stim_drift_direction * stim_drift_speed * (next_frame_time() - stim_drift_start_time) / 1e6
 
 %define stim_drift_end_pos = stim_drift_symb_dist * stim_size + stim_drift_spat_dist * stim_padding
 %define stim_drift_end_neg = stim_drift_direction * (stim_drift_symb_dist * stim_size + stim_drift_spat_dist * stim_padding)
-
 
 %define stim_seq_length = (num_stims) * (stim_size) + stim_dist_cum[num_stims - 1] * stim_padding
 %define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + stim_drift + stim_drift_fixed
 
 %define stim_wrapped_right = ((stim_position_x < (display_bounds('left') - stim_size/2)))
 %define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
+
+// Define a group of display variables
 var option_distance = 8
 var option_stim_size = 5
 var option_selector_distance = 13
@@ -111,7 +109,6 @@ var option_selector_distance = 13
 %define option_stim_selector_position_x (index) option_selector_distance * cos(2 * pi() / num_options * options_list[index])
 %define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * options_list[index])
 %define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
-%define stim_size_x = 
 var begin_drift = 0
 var in_fixation = 0
 var view_mask = 0
@@ -171,6 +168,7 @@ rectangle center_indicator_fill (
     x_position = 0
     alpha_multiplier = view_stim
 )
+
 stimulus_group img_stims {
     for_each_stim {
         image_file 'img_stim_${stim_index}' (

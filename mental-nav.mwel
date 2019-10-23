@@ -107,7 +107,6 @@ protocol 'Mental Navigation - Sequential' {
             }
             task {
                 state 'Begin fixation' {
-
                     in_fixation = 1
                     report ("*********BEGIN FIXATION**********")
                     queue_stimulus (fixation_point)
@@ -121,6 +120,7 @@ protocol 'Mental Navigation - Sequential' {
                     )
                 }
                 state 'Upon fixation' {
+                    // can put this in method
                     if (nconsecsuccess == nconsecsucc_increment) {
                         nconsecsuccess = 0
                         m_alpha = min(1, alpha_inc + m_alpha)
@@ -148,19 +148,17 @@ protocol 'Mental Navigation - Sequential' {
                 }
                 state 'Begin drift' {
                     report ("*********BEGIN DRIFT**********")
-
                     begin_drift = 1
                     stim_drift_direction = py_stim_drift_direction
                     stim_drift_start_time = next_frame_time()
-
                     goto (
                         target = 'End drift'
+                        // Make line below more legible
                         when = (stim_drift_direction == 1 and stim_drift >= stim_drift_end_pos - margin) or (stim_drift_direction == -1 and stim_drift <= stim_drift_end_neg + margin)
                     )
                 }
                 state 'End drift' {
                     report ("*********END DRIFT**********")
-
                     stim_drift_fixed = stim_drift
                     stim_drift_direction = 0
                     wait (1s)
