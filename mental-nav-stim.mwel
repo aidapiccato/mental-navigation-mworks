@@ -3,19 +3,22 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Stimuli display parameters
 var stim_size = 7
-var stim_padding = 2
+var stim_padding = 3
 var stim_position_y = 1
 var view_options = 0
 var num_options = 1
 var nconsecsucc_increment = 3
 var alpha_inc = 0.05
 var depth_display = 1
-
+var testing = 0
+var view_indicator = 0
 group 'Behavior' {
     var nsuccess = 0
     var nfailure = 0
     var sel_index = 0
     var nconsecsuccess = 0
+    var failure = 0
+    var success = 0
 }
 group 'Python parameters' {
     var py_start_stim_index = 0
@@ -24,7 +27,7 @@ group 'Python parameters' {
     var py_stim_dist_cum = []
     var py_meta_index = 0
     var py_stim_drift_direction = 0
-    var py_options_pos= []
+    var py_options_pos = []
     var py_num_options = 0
     var py_options_bin = []
 }
@@ -47,6 +50,7 @@ group 'Stimulus drift variables' {
     var stim_drift_start_time = 0
     var stim_drift_fixed = 0
     var stim_offset = 0
+    var alpha_multiplier_fixed = 0
 }
 
 // Methods to iterate through stimuli and stimuli pairs
@@ -118,15 +122,32 @@ var view_mask = 0
 %define view_stim = (1-in_fixation) * ((1-view_options) + (view_options)  * (1 - (${stim_index} != end_stim_index)))
 // %define view_mask = (1-in_fixation)
 var m_alpha = 0
-%define alpha_multiplier_drift = min(max(m_alpha * abs(stim_drift), 0), 1)
-%define alpha_multiplier_fixed = min(max(m_alpha * abs(stim_drift_fixed), 0), 1)
+%define alpha_multiplier_drift = min(max(m_alpha * (next_frame_time() - stim_drift_start_time) / 1e6, 0), 1)
 
 
-mask main_mask(
-    mask = rectangle
-    x_size = stim_size * 3
-    x_position = 0
+%define mask_width = display_bounds('right')
+var br = 0.5
+var bg = 0.5
+var bb = 0.5
+var mask_test_stims = 1
+var num_visible_stims = 2
+
+rectangle mask_left (
+    color = br, bg, bb
+    x_size = mask_width
+    y_size = stim_size*3/2
+    x_position = - (mask_width + num_visible_stims * stim_size) / 2 - 0.75
     y_position = 0
+    alpha_multiplier = mask_test_stims
+)
+
+rectangle mask_right (
+    color = br, bg, bb
+    x_size = mask_width
+    y_size = stim_size*3/2
+    x_position = (mask_width + num_visible_stims * stim_size) / 2 + 0.75
+    y_position = 0
+    alpha_multiplier = mask_test_stims
 )
 
 stimulus_group mask_stims {
@@ -159,7 +180,7 @@ rectangle center_indicator (
     y_size = stim_size + 0.75
     y_position = 0
     x_position = 0
-    alpha_multiplier = view_stim
+    alpha_multiplier = view_stim * view_indicator
 )
 
 rectangle center_indicator_fill (
@@ -168,7 +189,7 @@ rectangle center_indicator_fill (
     y_size = stim_size + 0.25
     y_position = 0
     x_position = 0
-    alpha_multiplier = view_stim
+    alpha_multiplier = view_stim * view_indicator
 )
 
 stimulus_group img_stims {
@@ -199,7 +220,7 @@ circular_fixation_point option_selector_0 (
     x_position = option_stim_selector_position_x (0)
     y_position = option_stim_selector_position_y (0)
     x_size = 1
-    color = (1 - eye_in_selector_0), eye_in_selector_0, 0
+    color = (1 - eye_in_selector_0) + (eye_in_selector_0) * failure, eye_in_selector_0 * success + (1 - eye_in_selector_0), (1 - eye_in_selector_0)
     alpha_multiplier = options_bin[0]
 )
 
@@ -211,7 +232,7 @@ circular_fixation_point option_selector_1 (
     x_position = option_stim_selector_position_x (1)
     y_position = option_stim_selector_position_y (1)
     x_size = 1
-    color = (1 - eye_in_selector_1), eye_in_selector_1, 0
+    color = (1 - eye_in_selector_1) + (eye_in_selector_1) * failure, eye_in_selector_1 * success + (1 - eye_in_selector_1), (1 - eye_in_selector_1)
     alpha_multiplier = options_bin[1]
 )
 
@@ -223,9 +244,10 @@ circular_fixation_point option_selector_2 (
     x_position = option_stim_selector_position_x (2)
     y_position = option_stim_selector_position_y (2)
     x_size = 1
-    color = (1 - eye_in_selector_2), eye_in_selector_2, 0
+    color = (1 - eye_in_selector_2) + (eye_in_selector_2) * failure, eye_in_selector_2 * success + (1 - eye_in_selector_2), (1 - eye_in_selector_2)
     alpha_multiplier = options_bin[2]
 )
+
 circular_fixation_point option_selector_3 (
     trigger_width = fixation_width
     trigger_watch_x = eye_h
@@ -234,7 +256,7 @@ circular_fixation_point option_selector_3 (
     x_position = option_stim_selector_position_x (3)
     y_position = option_stim_selector_position_y (3)
     x_size = 1
-    color = (1 - eye_in_selector_3), eye_in_selector_3, 0
+    color = (1 - eye_in_selector_3) + (eye_in_selector_3) * failure, eye_in_selector_3 * success + (1 - eye_in_selector_3), (1 - eye_in_selector_3)
     alpha_multiplier = options_bin[3]
 )
 
@@ -246,7 +268,7 @@ circular_fixation_point option_selector_4 (
     x_position = option_stim_selector_position_x (4)
     y_position = option_stim_selector_position_y (4)
     x_size = 1
-    color = (1 - eye_in_selector_4), eye_in_selector_4, 0
+    color = (1 - eye_in_selector_4) + (eye_in_selector_4) * failure, eye_in_selector_4 * success + (1 - eye_in_selector_4), (1 - eye_in_selector_4)
     alpha_multiplier = options_bin[4]
 )
 
@@ -258,7 +280,7 @@ circular_fixation_point option_selector_5 (
     x_position = option_stim_selector_position_x (5)
     y_position = option_stim_selector_position_y (5)
     x_size = 1
-    color = (1 - eye_in_selector_5), eye_in_selector_5, 0
+    color = (1 - eye_in_selector_5) + (eye_in_selector_5) * failure, eye_in_selector_5 * success + (1 - eye_in_selector_5), (1 - eye_in_selector_5)
     alpha_multiplier = options_bin[5]
 )
 
