@@ -1,18 +1,51 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Stimuli
+// Variable groups
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Stimuli display parameters
-var stim_size = 7
-var stim_padding = 3
-var stim_position_y = 1
-var view_options = 0
-var num_options = 1
-var nconsecsucc_increment = 3
-var alpha_inc = 0.05
-var depth_display = 1
-var testing = 0
-var view_indicator = 0
 
+
+%define num_stims = 8
+%define mask_width = display_bounds('right')
+
+group 'Sequence variables' {
+    var start_stim_index = 0
+    var end_stim_index = 0
+    var stim_index (scope = local; default_value = 0)
+    var pair_index (scope = local; default_value = 0)
+    var option_stim_index (scope = local; default_value = 0)
+    var stim_dist_cum = [0, 0, 0, 0, 0, 0, 0, 0]
+    var num_options = 1
+    var num_pairs = num_stims * num_stims
+    var depth_display = 1
+    var testing = 0
+}
+
+group 'Stimulus display variables' {
+    var br = 0.5
+    var bg = 0.5
+    var bb = 0.5
+
+    var stim_size = 7
+    var stim_padding = 3
+    var stim_position_y = 1
+
+    var option_distance = 8
+    var option_stim_size = 5
+    var option_selector_distance = 13
+
+    var alpha_m = 0
+    var alpha_m_inc = 0.05
+    var nconsecsucc_increment = 3
+
+    var num_visible_stims = 2
+}
+group 'Stimulus drift variables' {
+    var stim_drift_speed = 8
+    var stim_drift_direction = 0
+    var stim_drift_start_time = 0
+    var stim_drift_fixed = 0
+    var alpha_multiplier_fixed = 0
+    var margin = 10e-2
+}
 group 'Phase durations' {
     var pre_drift_dur = 1s
     var post_drift_dur = 1s
@@ -51,25 +84,6 @@ group 'Python parameters' {
     var py_options_bin = []
 }
 
-%define num_stims = 8
-var num_pairs = num_stims * num_stims
-
-group 'Sequence variables' {
-    var start_stim_index = 0
-    var end_stim_index = 0
-    var stim_index (scope = local; default_value = 0)
-    var pair_index (scope = local; default_value = 0)
-    var option_stim_index (scope = local; default_value = 0)
-    var stim_dist_cum = [0, 0, 0, 0, 0, 0, 0, 0]
-}
-
-group 'Stimulus drift variables' {
-    var stim_drift_speed = 8
-    var stim_drift_direction = 0
-    var stim_drift_start_time = 0
-    var stim_drift_fixed = 0 s
-    var alpha_multiplier_fixed = 0
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Range replicator macros
@@ -108,7 +122,7 @@ group 'Stimulus drift variables' {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 %define view_fixation_point = fixation
-%define view_center_indicator = not fixation
+%define view_center_indicator = pre_drift or drift or post_drift or pre_choice or choice or feedback
 %define view_window_mask = not choice
 %define view_stims = pre_drift or drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
 %define view_stim_masks = drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
@@ -130,45 +144,32 @@ group 'Stimulus drift variables' {
 %define stim_drift_symb_dist = (1 - cycle) * abs(wrap * num_stims - abs(start_stim_index - end_stim_index)) + (cycle) * num_stims
 %define stim_drift_spat_dist = (1 - cycle) * abs(wrap * cum_dist + stim_drift_direction * (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index])) + (cycle) * cum_dist
 
-%define stim_drift_max = display_bounds('right') - stim_offset
-%define stim_drift_min = display_bounds('left')  - stim_offset - (num_stims - 1) * (stim_size) - cum_dist * stim_padding
-
 %define stim_drift_dur = (next_frame_time() - stim_drift_start_time) / 1e6
 %define stim_drift = drift * stim_drift_direction * stim_drift_speed * stim_drift_dur
 
 %define stim_drift_end = (stim_drift_symb_dist * stim_size) + (stim_drift_spat_dist * stim_padding)
 
-%define stim_seq_length = (num_stims) * (stim_size) + stim_dist_cum[num_stims - 1] * stim_padding
+%define stim_seq_length = (num_stims) * (stim_size) + cum_dist * stim_padding
 
-%define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + stim_drift + stim_drift_fixed
 
 %define stim_wrapped_right = ((stim_position_x < (display_bounds('left')  - stim_size/2)))
 %define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
 
-%define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
+%define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + stim_drift + stim_drift_fixed
+%define stim_position_x_wrapped = (stim_wrapped_right + -1 * stim_wrapped_left) * stim_seq_length + stim_position_x
 
-// Define a group of display variables
-var option_distance = 8
-var option_stim_size = 5
-var option_selector_distance = 13
 %define option_stim_position_x = option_distance * cos(2 * pi() / num_options * options_pos[${option_stim_index}])
 %define option_stim_position_y = option_distance * sin(2 * pi() / num_options * options_pos[${option_stim_index}])
 
 %define option_stim_selector_position_x (index) option_selector_distance * cos(2 * pi() / num_options * options_pos[index])
 %define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * options_pos[index])
 
+%define alpha_multiplier_drift = min(max(alpha_m * stim_drift_dur, 0), 1)
 
-var view_mask = 0
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Stimuli
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var m_alpha = 0
-%define alpha_multiplier_drift = min(max(m_alpha * stim_drift_dur, 0), 1)
-//%define alpha_multiplier_drift = min(max(m_alpha * stim_drift_dur, 0), 1)
-
-%define mask_width = display_bounds('right')
-var br = 0.5
-var bg = 0.5
-var bb = 0.5
-var num_visible_stims = 2
 
 rectangle center_indicator (
     color = 0.75, 0.75, 0.75
