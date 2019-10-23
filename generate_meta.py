@@ -16,15 +16,13 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
         'start_stim_index': [],
         'end_stim_index': [],
         'pair_index': [],
-        'options_list': [],
+        'options_bin': [],
+        'options_pos': [],
         'num_options': []
     }
-    start_idx = np.repeat(np.linspace(0, num_stims - 1, num=num_stims), num_stims-1)
-    # end_idx = np.tile(np.linspace(0, num_stims - 1, num=num_stims), num_stims-1)
-    end_idx = np.repeat(np.linspace(0, num_stims - 1, num=num_stims), num_stims-1)
-    # end_idx = np.concatenate([np.asarray(np.delete(np.arange(num_stims), i)) for i in range(num_stims)])
-    print(end_idx)
-    num_pairs = num_stims * (num_stims - 1)
+    start_idx = np.repeat(np.linspace(0, num_stims - 1, num=num_stims), num_stims)
+    end_idx = np.tile(np.linspace(0, num_stims - 1, num=num_stims), num_stims)
+    num_pairs = num_stims**2
     for t in range(n_condition_repeats):
         for pair_index in range(num_pairs):
             meta_index = t * num_pairs + pair_index
@@ -35,15 +33,16 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
             meta['meta_index'].append(meta_index)
             meta['stim_drift_direction'].append(stim_drift_direction)
             end_stim_index = end_idx[pair_index]
-            right = [] if end_stim_index == num_stims - 1 else np.arange(end_stim_index + 1, num_stims)
-            # right = np.arange(end_stim_index + 1, np.amin((num_stims - 1, end_stim_index + 1)))
-            num_options = np.random.randint(2, num_stims)
+            other = np.arange(num_stims)
+            other = other[np.where(other != end_stim_index)]
+            num_options = np.random.choice([2, 4, num_stims])
+            options_ixs = np.asarray(np.concatenate(([end_stim_index], np.random.choice(other, num_options - 1, replace=False))), dtype=int)
+            options_pos, options_bin = np.zeros(num_stims), np.zeros(num_stims)
+            options_bin[options_ixs] = 1
+            options_pos[options_ixs] = np.random.permutation(np.arange(num_options))
             meta['num_options'].append(num_options)
-            # options_list = np.random.choice(np.concatenate((np.arange(0, end_stim_index), np.arange(end_stim_index+1, num_stims))), num_)
-            options_list = np.random.permutation(np.concatenate(([end_stim_index],
-                                                                        np.arange(0, end_stim_index),
-                                                                        right)))
-            meta['options_list'].append(options_list)
+            meta['options_pos'].append(options_pos)
+            meta['options_bin'].append(options_bin)
             stim_dist = np.random.geometric(prob, size=num_stims)
             stim_dist = np.clip(stim_dist, 1, max_dist)
             stim_dist_cum = np.cumsum(stim_dist)
