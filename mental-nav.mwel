@@ -8,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // var stim_onset=0
 
-var margin = 10e-4
+var margin = 10e-2
 stimulus_display (
     background_color = br, bg, bb
     redraw_on_every_refresh = true
@@ -167,25 +167,21 @@ protocol 'Mental Navigation - Sequential' {
                     pre_drift = 0
                     drift = 1
 
-                    // stim_drift_direction = py_stim_drift_direction
                     stim_drift_start_time = next_frame_time()
 
                     goto (
                         target = 'Post drift'
-                        // Make line below more legible
-                        when = (stim_drift_direction == 1 and stim_drift >= stim_drift_end_pos - margin) or (stim_drift_direction == -1 and stim_drift <= stim_drift_end_neg + margin)
+                        when = abs(stim_drift) >= (stim_drift_end - margin)
                     )
                 }
                 state 'Post drift' {
                     report ("*********POST DRIFT**********")
+
                     stim_drift_fixed = stim_drift
                     alpha_multiplier_fixed = alpha_multiplier_drift
 
                     drift = 0
                     post_drift = 1
-
-
-                    // stim_drift_direction = 0
 
                     wait (post_drift_dur)
 

@@ -111,6 +111,7 @@ group 'Stimulus drift variables' {
 %define view_center_indicator = not fixation
 %define view_window_mask = not choice
 %define view_stims = pre_drift or drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
+%define view_stim_masks = drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
 %define view_option_stims = (pre_choice or choice or feedback) and (options_bin[${option_stim_index}])
 %define view_option_selectors = choice or feedback
 
@@ -118,30 +119,33 @@ group 'Stimulus drift variables' {
 ////// Stimulus drift macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+%define cum_dist = stim_dist_cum[num_stims - 1]
+
 %define stim_offset = -start_stim_index * stim_size - stim_dist_cum[start_stim_index] * stim_padding
 
 %define cycle = end_stim_index == start_stim_index
-%define stim_drift_wrap = (py_stim_drift_direction == -1 and start_stim_index > end_stim_index) or (py_stim_drift_direction == 1 and end_stim_index > start_stim_index)
-%define stim_drift_symb_dist = (1 - cycle) * abs(stim_drift_wrap * num_stims - abs(start_stim_index - end_stim_index)) + (cycle) * num_stims
-%define stim_drift_spat_dist = (1 - cycle) * abs(stim_drift_wrap * stim_dist_cum[num_stims - 1] + py_stim_drift_direction * (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index])) + (cycle) * stim_dist_cum[num_stims - 1]
 
-var stim_drift_wrap_var = stim_drift_wrap
-var stim_drift_symb_dist_var = stim_drift_symb_dist
-var stim_drift_spat_dist_var = stim_drift_spat_dist
+%define wrap = stim_drift_direction * (end_stim_index - start_stim_index) > 0
+
+%define stim_drift_symb_dist = (1 - cycle) * abs(wrap * num_stims - abs(start_stim_index - end_stim_index)) + (cycle) * num_stims
+%define stim_drift_spat_dist = (1 - cycle) * abs(wrap * cum_dist + stim_drift_direction * (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index])) + (cycle) * cum_dist
 
 %define stim_drift_max = display_bounds('right') - stim_offset
-%define stim_drift_min = display_bounds('left') - stim_offset - (num_stims - 1) * (stim_size) - stim_dist_cum[num_stims - 1] * stim_padding
+%define stim_drift_min = display_bounds('left')  - stim_offset - (num_stims - 1) * (stim_size) - cum_dist * stim_padding
 
-%define stim_drift = drift * stim_drift_direction * stim_drift_speed * (next_frame_time() - stim_drift_start_time) / 1e6
+%define stim_drift_dur = (next_frame_time() - stim_drift_start_time) / 1e6
+%define stim_drift = drift * stim_drift_direction * stim_drift_speed * stim_drift_dur
 
-%define stim_drift_end_pos =       (stim_drift_symb_dist * stim_size) + (stim_drift_spat_dist * stim_padding)
-%define stim_drift_end_neg = -1 * ((stim_drift_symb_dist * stim_size) + (stim_drift_spat_dist * stim_padding))
+%define stim_drift_end = (stim_drift_symb_dist * stim_size) + (stim_drift_spat_dist * stim_padding)
 
 %define stim_seq_length = (num_stims) * (stim_size) + stim_dist_cum[num_stims - 1] * stim_padding
+
 %define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + stim_drift + stim_drift_fixed
 
-%define stim_wrapped_right = ((stim_position_x < (display_bounds('left') - stim_size/2)))
+%define stim_wrapped_right = ((stim_position_x < (display_bounds('left')  - stim_size/2)))
 %define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
+
+%define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
 
 // Define a group of display variables
 var option_distance = 8
@@ -153,12 +157,12 @@ var option_selector_distance = 13
 %define option_stim_selector_position_x (index) option_selector_distance * cos(2 * pi() / num_options * options_pos[index])
 %define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * options_pos[index])
 
-%define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
 
 var view_mask = 0
 
 var m_alpha = 0
-%define alpha_multiplier_drift = min(max(m_alpha * (next_frame_time() - stim_drift_start_time) / 1e6, 0), 1)
+%define alpha_multiplier_drift = min(max(m_alpha * stim_drift_dur, 0), 1)
+//%define alpha_multiplier_drift = min(max(m_alpha * stim_drift_dur, 0), 1)
 
 %define mask_width = display_bounds('right')
 var br = 0.5
@@ -209,7 +213,7 @@ stimulus_group mask_stims {
             x_size = stim_size
             x_position = stim_position_x_wrapped
             y_position = 0
-            alpha_multiplier = view_stims * (abs(stim_drift_direction) * alpha_multiplier_drift + (1-abs(stim_drift_direction)) * alpha_multiplier_fixed)
+            alpha_multiplier = view_stim_masks * (drift * alpha_multiplier_drift + (1 - drift) * alpha_multiplier_fixed)
 	    )
     }
 }
