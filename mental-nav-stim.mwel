@@ -6,6 +6,9 @@
 %define num_stims = 8
 %define mask_width = display_bounds('right')
 
+group 'Experiment settings' {
+    var use_mouse = 1
+}
 group 'Sequence variables' {
     var start_stim_index = 0
     var end_stim_index = 0
@@ -17,6 +20,7 @@ group 'Sequence variables' {
     var num_pairs = num_stims * num_stims
     var depth_display = 1
     var testing = 0
+    var selected = -1
 }
 
 group 'Stimulus display variables' {
@@ -50,7 +54,7 @@ group 'Phase durations' {
     var pre_drift_dur = 1s
     var post_drift_dur = 1s
     var pre_choice_dur = 1s
-    var choice_dur = 2s
+    var choice_dur = 3s
     var feedback_dur = 1s
 }
 
@@ -126,8 +130,17 @@ group 'Python parameters' {
 %define view_window_mask = not choice
 %define view_stims = pre_drift or drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
 %define view_stim_masks = drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
-%define view_option_stims = (pre_choice or choice or feedback) and (options_bin[${option_stim_index}])
-%define view_option_selectors = choice or feedback
+%define view_option_stims = ((pre_choice or choice) and (options_bin[${option_stim_index}])) or (feedback and selected == ${option_stim_index})
+%define view_option_selectors (index) (choice or (feedback and selected == index))
+var hide_mouse = YES
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Color macros
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+%define red = choice or (feedback and failure)
+%define green = choice or (feedback and success)
+%define blue = choice
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Stimulus drift macros
@@ -169,7 +182,6 @@ group 'Python parameters' {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Stimuli
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 rectangle center_indicator (
     color = 0.75, 0.75, 0.75
@@ -258,100 +270,102 @@ group 'Option selector flags' {
     var eye_in_selector_7 = 0
 }
 
+// Option selector 'index' corresponds to the sequence index
+
 circular_fixation_point option_selector_0 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y //eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_0
     x_position = option_stim_selector_position_x (0)
     y_position = option_stim_selector_position_y (0)
     x_size = 1
-    color = (1 - eye_in_selector_0) + (eye_in_selector_0) * failure, eye_in_selector_0 * success + (1 - eye_in_selector_0), (1 - eye_in_selector_0)
-    alpha_multiplier = view_option_selectors * options_bin[0]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (0) * options_bin[0]
 )
 
 circular_fixation_point option_selector_1 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_1
     x_position = option_stim_selector_position_x (1)
     y_position = option_stim_selector_position_y (1)
     x_size = 1
-    color = (1 - eye_in_selector_1) + (eye_in_selector_1) * failure, eye_in_selector_1 * success + (1 - eye_in_selector_1), (1 - eye_in_selector_1)
-    alpha_multiplier = view_option_selectors * options_bin[1]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (1) * options_bin[1]
 )
 
 circular_fixation_point option_selector_2 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_2
     x_position = option_stim_selector_position_x (2)
     y_position = option_stim_selector_position_y (2)
     x_size = 1
-    color = (1 - eye_in_selector_2) + (eye_in_selector_2) * failure, eye_in_selector_2 * success + (1 - eye_in_selector_2), (1 - eye_in_selector_2)
-    alpha_multiplier = view_option_selectors * options_bin[2]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (2) * options_bin[2]
 )
 
 circular_fixation_point option_selector_3 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_3
     x_position = option_stim_selector_position_x (3)
     y_position = option_stim_selector_position_y (3)
     x_size = 1
-    color = (1 - eye_in_selector_3) + (eye_in_selector_3) * failure, eye_in_selector_3 * success + (1 - eye_in_selector_3), (1 - eye_in_selector_3)
-    alpha_multiplier = view_option_selectors * options_bin[3]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (3) * options_bin[3]
 )
 
 circular_fixation_point option_selector_4 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_4
     x_position = option_stim_selector_position_x (4)
     y_position = option_stim_selector_position_y (4)
     x_size = 1
-    color = (1 - eye_in_selector_4) + (eye_in_selector_4) * failure, eye_in_selector_4 * success + (1 - eye_in_selector_4), (1 - eye_in_selector_4)
-    alpha_multiplier = view_option_selectors * options_bin[4]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (4) * options_bin[4]
 )
 
 circular_fixation_point option_selector_5 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_5
     x_position = option_stim_selector_position_x (5)
     y_position = option_stim_selector_position_y (5)
     x_size = 1
-    color = (1 - eye_in_selector_5) + (eye_in_selector_5) * failure, eye_in_selector_5 * success + (1 - eye_in_selector_5), (1 - eye_in_selector_5)
-    alpha_multiplier = view_option_selectors * options_bin[5]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (5) * options_bin[5]
 )
 
 circular_fixation_point option_selector_6 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_6
     x_position = option_stim_selector_position_x (6)
     y_position = option_stim_selector_position_y (6)
     x_size = 1
-    color = (1 - eye_in_selector_6) + (eye_in_selector_6) * failure, eye_in_selector_6 * success + (1 - eye_in_selector_6), (1 - eye_in_selector_6)
-    alpha_multiplier = view_option_selectors * options_bin[6]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (6) * options_bin[6]
 )
 
 circular_fixation_point option_selector_7 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_7
     x_position = option_stim_selector_position_x (7)
     y_position = option_stim_selector_position_y (7)
     x_size = 1
-    color = (1 - eye_in_selector_7) + (eye_in_selector_7) * failure, eye_in_selector_7 * success + (1 - eye_in_selector_7), (1 - eye_in_selector_7)
-    alpha_multiplier = view_option_selectors * options_bin[7]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (7) * options_bin[7]
 )
 
 %define display_option_selectors()
