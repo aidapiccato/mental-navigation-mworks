@@ -26,7 +26,7 @@ boxcar_filter_1d (
     width_samples = 5
 )
 
-var fixation_width = 5
+var fixation_width = 1
 var fixation_point_size = 1
 var fixation_pos_x = 0
 var fixation_pos_y = 0

@@ -33,8 +33,8 @@ group 'Stimulus display variables' {
     var stim_position_y = 1
 
     var option_distance = 8
-    var option_stim_size = 5
-    var option_selector_distance = 13
+    var option_stim_size = 3
+    var option_selector_distance = 8
 
     var alpha_m = 0
     var alpha_m_inc = 0.05
@@ -163,7 +163,6 @@ var hide_mouse = YES
 %define stim_drift_end = (stim_drift_symb_dist * stim_size) + (stim_drift_spat_dist * stim_padding)
 
 %define stim_seq_length = (num_stims) * (stim_size) + cum_dist * stim_padding
-
 
 %define stim_wrapped_right = ((stim_position_x < (display_bounds('left')  - stim_size/2)))
 %define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))

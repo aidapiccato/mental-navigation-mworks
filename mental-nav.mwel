@@ -66,6 +66,7 @@ var options_bin = [0, 0, 0, 0, 0, 0, 0, 0]
     stim_drift_direction = py_stim_drift_direction
 %end
 
+var sync = 0
 %define reset_vars ()
     start_stim_index = 0
     end_stim_index = 0
@@ -90,6 +91,7 @@ var options_bin = [0, 0, 0, 0, 0, 0, 0, 0]
             y_position=-100
         )
     }
+    sync = 0
 %end
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,18 +113,20 @@ protocol 'Mental Navigation - Sequential' {
     }
     live_queue_stimulus (window_mask_left)
     live_queue_stimulus (window_mask_right)
-    display_option_selectors()
+
     reset_selection (trial_index)
     run_python_file('mental-nav_utils.py')
     block (nsamples = num_trials_per_block) {
         trial {
             fixation = 1
+            sync = 0
             update_trial_params_from_meta_ones()
             for_each_option_stim {
                 list {
                     live_queue_stimulus(option_stims[option_stim_index])
                 }
             }
+            display_option_selectors()
             task {
                 state 'Begin fixation' {
                     report ("*********BEGIN FIXATION**********")
@@ -153,6 +157,7 @@ protocol 'Mental Navigation - Sequential' {
 
                     fixation = 0
                     pre_drift = 1
+                    sync = 1
 
                     dequeue_stimulus (fixation_point)
                     update_display ()
@@ -173,6 +178,7 @@ protocol 'Mental Navigation - Sequential' {
 
                     pre_drift = 0
                     drift = 1
+                    sync = 2
 
                     stim_drift_start_time = next_frame_time()
 
@@ -189,6 +195,7 @@ protocol 'Mental Navigation - Sequential' {
 
                     drift = 0
                     post_drift = 1
+                    sync = 3
 
                     wait (post_drift_dur)
 
@@ -199,6 +206,7 @@ protocol 'Mental Navigation - Sequential' {
 
                     post_drift = 0
                     pre_choice = 1
+                    sync = 4
 
                     if (use_mouse) {
                         reset_pointer_position (
@@ -216,6 +224,7 @@ protocol 'Mental Navigation - Sequential' {
 
                     pre_choice = 0
                     choice = 1
+                    sync = 5
 
                     // hide_mouse = NO
 
@@ -363,8 +372,10 @@ protocol 'Mental Navigation - Sequential' {
                 }
                 state 'Success' {
                     report ("*********SUCCESS**********")
+
                     choice = 0
                     feedback = 1
+                    sync = 6
 
                     nsuccess = nsuccess + 1
                     nconsecsuccess = nconsecsuccess + 1
@@ -375,8 +386,10 @@ protocol 'Mental Navigation - Sequential' {
                 }
                 state 'Failure' {
                     report ("*********FAILURE**********")
+
                     choice = 0
                     feedback = 1
+                    sync = 6
 
                     failure = 1
                     nfailure = nfailure + 1
