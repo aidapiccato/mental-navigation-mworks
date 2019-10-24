@@ -177,7 +177,7 @@ var hide_mouse = YES
 %define option_stim_selector_position_x (index) option_selector_distance * cos(2 * pi() / num_options * options_pos[index])
 %define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * options_pos[index])
 
-%define alpha_multiplier_drift = min(max(alpha_m * stim_drift_dur, 0), 1)
+%define alpha_multiplier_drift = (1 - testing) * min(max(alpha_m * stim_drift_dur, 0), 1) + testing
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Stimuli
