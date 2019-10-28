@@ -172,17 +172,44 @@ protocol 'Mental Navigation - Sequential' {
                     drift = 1
                     sync = 2
 
+                    goto ('Drift transition')
+                }
+                state 'Drift transition' {
+                    report ("***********DRIFT TRANSITION***********")
+
+                    drift_pause = 0
+                    drift_transition = 1
+                    sync = 3
+
                     stim_drift_start_time = next_frame_time()
 
                     goto (
+                        target = 'Drift pause'
+                        when = abs(stim_drift_transition) >= (stim_drift_transition_end - margin)
+                    )
+
+                }
+                state 'Drift pause' {
+                    report ("***********DRIFT PAUSE***********")
+                    stim_drift_fixed = stim_drift_fixed + stim_drift_transition
+
+                    drift_transition = 0
+                    drift_pause = 1
+                    sync = 4
+
+                    wait (drift_pause_dur)
+
+                    goto (
                         target = 'Post drift'
-                        when = abs(stim_drift) >= (stim_drift_end - margin)
+                        when = abs(stim_drift_fixed) >= (stim_drift_end - margin)
+                    )
+                    goto (
+                        target = 'Drift transition'
                     )
                 }
                 state 'Post drift' {
                     report ("*********POST DRIFT**********")
 
-                    stim_drift_fixed = stim_drift
                     alpha_multiplier_fixed = alpha_multiplier_drift
 
                     drift = 0
