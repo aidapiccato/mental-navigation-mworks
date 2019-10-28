@@ -2,7 +2,7 @@
 %include 'eye'
 %include 'keyboard_device'
 %include 'mouse'
-
+var sync = -1
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Display
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -66,32 +66,22 @@ var options_bin = [0, 0, 0, 0, 0, 0, 0, 0]
     stim_drift_direction = py_stim_drift_direction
 %end
 
-var sync = 0
+
 %define reset_vars ()
-    start_stim_index = 0
-    end_stim_index = 0
-    pair_index = 0
-    stim_drift_direction = 0
-    alpha_multiplier_fixed = 0
-    stim_drift_fixed = 0
-    fixation = 1
-    pre_drift = 0
-    drift = 0
-    pre_choice = 0
     choice = 0
     feedback = 0
     failure = 0
     success = 0
+    ignore = 0
+
     selected = -1
     stim_drift_fixed = 0
-    // hide_mouse = YES
     if (use_mouse) {
         reset_pointer_position (
             x_position=-100
             y_position=-100
         )
     }
-    sync = 0
 %end
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,17 +106,19 @@ protocol 'Mental Navigation - Sequential' {
 
     reset_selection (trial_index)
     run_python_file('mental-nav_utils.py')
-    block (nsamples = num_trials_per_block) {
+    block (nsamples = 100) {
         trial {
-            fixation = 1
             sync = 0
             update_trial_params_from_meta_ones()
+
             for_each_option_stim {
                 list {
                     live_queue_stimulus(option_stims[option_stim_index])
                 }
             }
+
             display_option_selectors()
+
             task {
                 state 'Begin fixation' {
                     report ("*********BEGIN FIXATION**********")
@@ -136,7 +128,9 @@ protocol 'Mental Navigation - Sequential' {
                         nconsecsuccess = 0
                         alpha_m = min(1, alpha_m_inc + alpha_m)
                     }
-
+                    else {
+                        alpha_m = alpha_m
+                    }
                     fixation = 1
 
                     queue_stimulus (fixation_point)
@@ -226,8 +220,6 @@ protocol 'Mental Navigation - Sequential' {
                     choice = 1
                     sync = 5
 
-                    // hide_mouse = NO
-
                     // wait (2s)
                     if (not use_mouse) {
                         simulate_fixation_choice(end_stim_index)
@@ -270,7 +262,7 @@ protocol 'Mental Navigation - Sequential' {
                         when = eye_in_selector_7 and not((1 - use_mouse) * (saccade)) and options_bin[7]
                     )
                     goto (
-                        target = 'Failure'
+                        target = 'Ignore'
                         when = timer_expired(choice_timer)
                     )
                 }
@@ -373,13 +365,15 @@ protocol 'Mental Navigation - Sequential' {
                 state 'Success' {
                     report ("*********SUCCESS**********")
 
+                    nsuccess = nsuccess + 1
+                    nconsecsuccess = nconsecsuccess + 1
+                    success = 1
+
                     choice = 0
                     feedback = 1
                     sync = 6
 
-                    nsuccess = nsuccess + 1
-                    nconsecsuccess = nconsecsuccess + 1
-                    success = 1
+
 
                     wait (feedback_dur)
                     goto ('End trial')
@@ -387,23 +381,42 @@ protocol 'Mental Navigation - Sequential' {
                 state 'Failure' {
                     report ("*********FAILURE**********")
 
-                    choice = 0
-                    feedback = 1
-                    sync = 6
-
                     failure = 1
                     nfailure = nfailure + 1
                     nconsecsuccess = 0
 
+                    choice = 0
+                    feedback = 1
+                    sync = 6
+
+
                     wait (feedback_dur)
                     goto ('End trial')
+                }
+                state 'Ignore' {
+
+                    ignore = 1
+                    nignore = nignore + 1
+                    nconsecsuccess = 0
+
+
+                    choice = 0
+                    feedback = 1
+                    sync = 6
+
+
+                    wait (feedback_dur)
+                    goto ('End trial')
+
                 }
                 state 'End trial' {
                     report ("*********END TRIAL**********")
                     accept_selections (trial_index)
                     reset_vars()
+                    sync = -1
                     yield ()
                 }
+
             }
         }
     }

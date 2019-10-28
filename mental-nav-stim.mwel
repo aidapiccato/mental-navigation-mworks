@@ -13,7 +13,7 @@ group 'Sequence variables' {
     var start_stim_index = 0
     var end_stim_index = 0
     var stim_index (scope = local; default_value = 0)
-    var pair_index (scope = local; default_value = 0)
+    var pair_index = 0
     var option_stim_index (scope = local; default_value = 0)
     var stim_dist_cum = [0, 0, 0, 0, 0, 0, 0, 0]
     var num_options = 1
@@ -34,10 +34,10 @@ group 'Stimulus display variables' {
 
     var option_distance = 8
     var option_stim_size = 3
-    var option_selector_distance = 8
+    var option_selector_distance = 11
 
     var alpha_m = 0
-    var alpha_m_inc = 0.05
+    var alpha_m_inc = 0.1
     var nconsecsucc_increment = 3
 
     var num_visible_stims = 2
@@ -55,7 +55,7 @@ group 'Phase durations' {
     var post_drift_dur = 1s
     var pre_choice_dur = 1s
     var choice_dur = 3s
-    var feedback_dur = 1s
+    var feedback_dur = 3s
 }
 
 group 'Phases' {
@@ -71,10 +71,12 @@ group 'Phases' {
 group 'Behavior' {
     var nsuccess = 0
     var nfailure = 0
+    var nignore = 0
     var sel_index = 0
     var nconsecsuccess = 0
     var failure = 0
     var success = 0
+    var ignore = 0
 }
 group 'Python parameters' {
     var py_start_stim_index = 0
@@ -110,7 +112,7 @@ group 'Python parameters' {
         step = 1
     )
 % end
-
+/*
 %define for_each_pair ()
     range_replicator (
         variable = pair_index
@@ -119,6 +121,7 @@ group 'Python parameters' {
         step = 1
        )
 %end
+*/
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,7 +141,7 @@ var hide_mouse = YES
 ////// Color macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-%define red = choice or (feedback and failure)
+%define red = choice or (feedback and (failure or ignore))
 %define green = choice or (feedback and success)
 %define blue = choice
 
@@ -167,7 +170,7 @@ var hide_mouse = YES
 %define stim_wrapped_right = ((stim_position_x < (display_bounds('left')  - stim_size/2)))
 %define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
 
-%define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + stim_drift + stim_drift_fixed
+%define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + drift * stim_drift + (1 - drift) * stim_drift_fixed
 %define stim_position_x_wrapped = (stim_wrapped_right + -1 * stim_wrapped_left) * stim_seq_length + stim_position_x
 
 %define option_stim_position_x = option_distance * cos(2 * pi() / num_options * options_pos[${option_stim_index}])
