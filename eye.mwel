@@ -26,7 +26,7 @@ boxcar_filter_1d (
     width_samples = 5
 )
 
-var fixation_width = 2
+var fixation_width = 1
 var fixation_point_size = 1
 var fixation_pos_x = 0
 var fixation_pos_y = 0
@@ -73,8 +73,8 @@ fake_monkey eye_tracker {
 %define simulate_fixation_choice (index)
     fake_monkey_saccade_and_fixate (
         fake_monkey = eye_tracker
-        h = option_selector_distance * cos(2 * pi() / num_options * index)
-        v = option_selector_distance * sin(2 * pi() / num_options * index)
+        h = option_selector_distance * cos(2 * pi() / num_options * options_pos[index])
+        v = option_selector_distance * sin(2 * pi() / num_options * options_pos[index])
         duration = 10s
      )
 %end

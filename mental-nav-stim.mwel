@@ -1,24 +1,82 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Stimuli
+// Variable groups
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Stimuli display parameters
-var stim_size = 7
-var stim_padding = 3
-var stim_position_y = 1
-var view_options = 0
-var num_options = 1
-var nconsecsucc_increment = 3
-var alpha_inc = 0.05
-var depth_display = 1
-var testing = 0
-var view_indicator = 0
+
+
+%define num_stims = 8
+%define mask_width = display_bounds('right')
+
+group 'Experiment settings' {
+    var use_mouse = 1
+}
+group 'Sequence variables' {
+    var start_stim_index = 0
+    var end_stim_index = 0
+    var stim_index (scope = local; default_value = 0)
+    var pair_index = 0
+    var option_stim_index (scope = local; default_value = 0)
+    var stim_dist_cum = [0, 0, 0, 0, 0, 0, 0, 0]
+    var num_options = 1
+    var num_pairs = num_stims * num_stims
+    var depth_display = 1
+    var testing = 0
+    var selected = -1
+}
+
+group 'Stimulus display variables' {
+    var br = 0.5
+    var bg = 0.5
+    var bb = 0.5
+
+    var stim_size = 7
+    var stim_padding = 3
+    var stim_position_y = 1
+
+    var option_distance = 8
+    var option_stim_size = 3
+    var option_selector_distance = 11
+
+    var alpha_m = 0
+    var alpha_m_inc = 0.1
+    var nconsecsucc_increment = 3
+
+    var num_visible_stims = 2
+}
+group 'Stimulus drift variables' {
+    var stim_drift_speed = 8
+    var stim_drift_direction = 0
+    var stim_drift_start_time = 0
+    var stim_drift_fixed = 0
+    var alpha_multiplier_fixed = 0
+    var margin = 10e-2
+}
+group 'Phase durations' {
+    var pre_drift_dur = 1s
+    var post_drift_dur = 1s
+    var pre_choice_dur = 1s
+    var choice_dur = 3s
+    var feedback_dur = 3s
+}
+
+group 'Phases' {
+    var fixation = 0
+    var pre_drift = 0
+    var drift = 0
+    var post_drift = 0
+    var pre_choice = 0
+    var choice = 0
+    var feedback = 0
+}
+
 group 'Behavior' {
     var nsuccess = 0
     var nfailure = 0
+    var nignore = 0
     var sel_index = 0
     var nconsecsuccess = 0
     var failure = 0
     var success = 0
+    var ignore = 0
 }
 group 'Python parameters' {
     var py_start_stim_index = 0
@@ -32,8 +90,6 @@ group 'Python parameters' {
     var py_options_bin = []
 }
 
-%define num_stims = 6
-var num_pairs = num_stims * num_stims
 
 group 'Sequence variables' {
     var start_stim_index = 0
@@ -43,17 +99,10 @@ group 'Sequence variables' {
     var option_stim_index (scope = local; default_value = 0)
     var stim_dist_cum = [1, 1, 1, 1, 1, 1, 1, 1]
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Range replicator macros
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-group 'Stimulus drift variables' {
-    var stim_drift_speed = 8
-    var stim_drift_direction = 0
-    var stim_drift_start_time = 0
-    var stim_drift_fixed = 0
-    var stim_offset = 0
-    var alpha_multiplier_fixed = 0
-}
-
-// Methods to iterate through stimuli and stimuli pairs
 %define for_each_stim ()
     range_replicator (
         variable = stim_index
@@ -71,7 +120,7 @@ group 'Stimulus drift variables' {
         step = 1
     )
 % end
-
+/*
 %define for_each_pair ()
     range_replicator (
         variable = pair_index
@@ -80,74 +129,104 @@ group 'Stimulus drift variables' {
         step = 1
        )
 %end
+*/
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Visibility macros
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+%define view_fixation_point = fixation
+%define view_center_indicator = pre_drift or drift or post_drift or pre_choice or choice or feedback
+%define view_window_mask = not choice
+%define view_stims = pre_drift or drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
+%define view_stim_masks = drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
+%define view_option_stims = ((pre_choice or choice) and (options_bin[${option_stim_index}])) or (feedback and selected == ${option_stim_index})
+%define view_option_selectors (index) (choice or (feedback and selected == index))
+var hide_mouse = YES
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Color macros
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+%define red = choice or (feedback and (failure or ignore))
+%define green = choice or (feedback and success)
+%define blue = choice
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Stimulus drift macros
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+%define cum_dist = stim_dist_cum[num_stims - 1]
+
+%define stim_offset = -start_stim_index * stim_size - stim_dist_cum[start_stim_index] * stim_padding
 
 %define cycle = end_stim_index == start_stim_index
-%define stim_drift_wrap = (py_stim_drift_direction == -1 and start_stim_index > end_stim_index) or (py_stim_drift_direction == 1 and end_stim_index > start_stim_index)
-%define stim_drift_symb_dist = (1 - cycle) * abs(stim_drift_wrap * num_stims - abs(start_stim_index - end_stim_index)) + (cycle) * num_stims
-%define stim_drift_spat_dist = (1 - cycle) * abs(stim_drift_wrap * stim_dist_cum[num_stims - 1] + py_stim_drift_direction * (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index])) + (cycle) * stim_dist_cum[num_stims - 1]
 
-var stim_drift_wrap_var = stim_drift_wrap
-var stim_drift_symb_dist_var = stim_drift_symb_dist
-var stim_drift_spat_dist_var = stim_drift_spat_dist
+%define wrap = stim_drift_direction * (end_stim_index - start_stim_index) > 0
 
-%define stim_drift_max = display_bounds('right') - stim_offset
-%define stim_drift_min = display_bounds('left') - stim_offset - (num_stims - 1) * (stim_size) - stim_dist_cum[num_stims - 1] * stim_padding
+%define stim_drift_symb_dist = (1 - cycle) * abs(wrap * num_stims - abs(start_stim_index - end_stim_index)) + (cycle) * num_stims
+%define stim_drift_spat_dist = (1 - cycle) * abs(wrap * cum_dist + stim_drift_direction * (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index])) + (cycle) * cum_dist
 
-%define stim_drift = stim_drift_direction * stim_drift_speed * (next_frame_time() - stim_drift_start_time) / 1e6
+%define stim_drift_dur = (next_frame_time() - stim_drift_start_time) / 1e6
+%define stim_drift = drift * stim_drift_direction * stim_drift_speed * stim_drift_dur
 
-%define stim_drift_end_pos = stim_drift_symb_dist * stim_size + stim_drift_spat_dist * stim_padding
-%define stim_drift_end_neg = stim_drift_direction * (stim_drift_symb_dist * stim_size + stim_drift_spat_dist * stim_padding)
+%define stim_drift_end = (stim_drift_symb_dist * stim_size) + (stim_drift_spat_dist * stim_padding)
 
-%define stim_seq_length = (num_stims) * (stim_size) + stim_dist_cum[num_stims - 1] * stim_padding
-%define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + stim_drift + stim_drift_fixed
+%define stim_seq_length = (num_stims) * (stim_size) + cum_dist * stim_padding
 
-%define stim_wrapped_right = ((stim_position_x < (display_bounds('left') - stim_size/2)))
+%define stim_wrapped_right = ((stim_position_x < (display_bounds('left')  - stim_size/2)))
 %define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
 
-// Define a group of display variables
-var option_distance = 8
-var option_stim_size = 5
-var option_selector_distance = 13
+%define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + drift * stim_drift + (1 - drift) * stim_drift_fixed
+%define stim_position_x_wrapped = (stim_wrapped_right + -1 * stim_wrapped_left) * stim_seq_length + stim_position_x
+
 %define option_stim_position_x = option_distance * cos(2 * pi() / num_options * options_pos[${option_stim_index}])
 %define option_stim_position_y = option_distance * sin(2 * pi() / num_options * options_pos[${option_stim_index}])
 
 %define option_stim_selector_position_x (index) option_selector_distance * cos(2 * pi() / num_options * options_pos[index])
 %define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * options_pos[index])
 
-%define stim_position_x_wrapped =  (stim_wrapped_right) * stim_seq_length + (-1 * stim_wrapped_left) * stim_seq_length + stim_position_x
-var begin_drift = 0
-var in_fixation = 0
-var view_mask = 0
-%define view_stim_mask = (1-in_fixation) * (view_options * (1 - (${stim_index} != end_stim_index)) + (1 - view_options))
-%define view_stim = (1-in_fixation) * ((1-view_options) + (view_options)  * (1 - (${stim_index} != end_stim_index)))
-// %define view_mask = (1-in_fixation)
-var m_alpha = 0
-%define alpha_multiplier_drift = min(max(m_alpha * (next_frame_time() - stim_drift_start_time) / 1e6, 0), 1)
+%define alpha_multiplier_drift = (1 - testing) * min(max(alpha_m * stim_drift_dur, 0), 1) + testing
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// Stimuli
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-%define mask_width = display_bounds('right')
-var br = 0.5
-var bg = 0.5
-var bb = 0.5
-var mask_test_stims = 1
-var num_visible_stims = 2
+rectangle center_indicator (
+    color = 0.75, 0.75, 0.75
+    x_size = stim_size + 0.75
+    y_size = stim_size + 0.75
+    y_position = 0
+    x_position = 0
+    alpha_multiplier = view_center_indicator
+)
 
-rectangle mask_left (
+rectangle center_indicator_fill (
+    color = 0.5, 0.5, 0.5
+    x_size = stim_size + 0.25
+    y_size = stim_size + 0.25
+    y_position = 0
+    x_position = 0
+    alpha_multiplier =  view_center_indicator
+)
+
+rectangle window_mask_left (
     color = br, bg, bb
     x_size = mask_width
     y_size = stim_size*3/2
     x_position = - (mask_width + num_visible_stims * stim_size) / 2 - 0.75
     y_position = 0
-    alpha_multiplier = mask_test_stims
+    alpha_multiplier = view_window_mask
 )
 
-rectangle mask_right (
+rectangle window_mask_right (
     color = br, bg, bb
     x_size = mask_width
     y_size = stim_size*3/2
     x_position = (mask_width + num_visible_stims * stim_size) / 2 + 0.75
     y_position = 0
-    alpha_multiplier = mask_test_stims
+    alpha_multiplier = view_window_mask
 )
 
 stimulus_group mask_stims {
@@ -157,7 +236,7 @@ stimulus_group mask_stims {
             x_size = stim_size
             x_position = stim_position_x_wrapped
             y_position = 0
-            alpha_multiplier = view_stim * (abs(stim_drift_direction) * alpha_multiplier_drift + (1-abs(stim_drift_direction)) * alpha_multiplier_fixed)
+            alpha_multiplier = view_stim_masks * (drift * alpha_multiplier_drift + (1 - drift) * alpha_multiplier_fixed)
 	    )
     }
 }
@@ -165,123 +244,138 @@ stimulus_group mask_stims {
 stimulus_group option_stims {
     for_each_option_stim {
         image_file 'img_option_stim_${option_stim_index}' (
-            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${option_stim_index}.jpg"
+            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${option_stim_index}.jpg"
             x_size = option_stim_size
             x_position = option_stim_position_x
             y_position = option_stim_position_y
-	        alpha_multiplier = options_bin[${option_stim_index}] * view_options
+	        alpha_multiplier = view_option_stims
 	    )
     }
 }
 
-rectangle center_indicator (
-    color = 0.75, 0.75, 0.75
-    x_size = stim_size + 0.75
-    y_size = stim_size + 0.75
-    y_position = 0
-    x_position = 0
-    alpha_multiplier = view_stim * view_indicator
-)
-
-rectangle center_indicator_fill (
-    color = 0.5, 0.5, 0.5
-    x_size = stim_size + 0.25
-    y_size = stim_size + 0.25
-    y_position = 0
-    x_position = 0
-    alpha_multiplier = view_stim * view_indicator
-)
-
 stimulus_group img_stims {
     for_each_stim {
         image_file 'img_stim_${stim_index}' (
-            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${stim_index}.jpg"
+            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${stim_index}.jpg"
             x_size = stim_size
             x_position = stim_position_x_wrapped
 	        y_position = 0
-	        alpha_multiplier = view_stim
+	        alpha_multiplier = view_stims
         )
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////// Option selectors
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var eye_in_selector_0 = 0
-var eye_in_selector_1 = 0
-var eye_in_selector_2 = 0
-var eye_in_selector_3 = 0
-var eye_in_selector_4 = 0
-var eye_in_selector_5 = 0
+group 'Option selector flags' {
+    var eye_in_selector_0 = 0
+    var eye_in_selector_1 = 0
+    var eye_in_selector_2 = 0
+    var eye_in_selector_3 = 0
+    var eye_in_selector_4 = 0
+    var eye_in_selector_5 = 0
+    var eye_in_selector_6 = 0
+    var eye_in_selector_7 = 0
+}
+
+// Option selector 'index' corresponds to the sequence index
 
 circular_fixation_point option_selector_0 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y //eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_0
     x_position = option_stim_selector_position_x (0)
     y_position = option_stim_selector_position_y (0)
     x_size = 1
-    color = (1 - eye_in_selector_0) + (eye_in_selector_0) * failure, eye_in_selector_0 * success + (1 - eye_in_selector_0), (1 - eye_in_selector_0)
-    alpha_multiplier = options_bin[0]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (0) * options_bin[0]
 )
 
 circular_fixation_point option_selector_1 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_1
     x_position = option_stim_selector_position_x (1)
     y_position = option_stim_selector_position_y (1)
     x_size = 1
-    color = (1 - eye_in_selector_1) + (eye_in_selector_1) * failure, eye_in_selector_1 * success + (1 - eye_in_selector_1), (1 - eye_in_selector_1)
-    alpha_multiplier = options_bin[1]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (1) * options_bin[1]
 )
 
 circular_fixation_point option_selector_2 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_2
     x_position = option_stim_selector_position_x (2)
     y_position = option_stim_selector_position_y (2)
     x_size = 1
-    color = (1 - eye_in_selector_2) + (eye_in_selector_2) * failure, eye_in_selector_2 * success + (1 - eye_in_selector_2), (1 - eye_in_selector_2)
-    alpha_multiplier = options_bin[2]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (2) * options_bin[2]
 )
 
 circular_fixation_point option_selector_3 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_3
     x_position = option_stim_selector_position_x (3)
     y_position = option_stim_selector_position_y (3)
     x_size = 1
-    color = (1 - eye_in_selector_3) + (eye_in_selector_3) * failure, eye_in_selector_3 * success + (1 - eye_in_selector_3), (1 - eye_in_selector_3)
-    alpha_multiplier = options_bin[3]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (3) * options_bin[3]
 )
 
 circular_fixation_point option_selector_4 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_4
     x_position = option_stim_selector_position_x (4)
     y_position = option_stim_selector_position_y (4)
     x_size = 1
-    color = (1 - eye_in_selector_4) + (eye_in_selector_4) * failure, eye_in_selector_4 * success + (1 - eye_in_selector_4), (1 - eye_in_selector_4)
-    alpha_multiplier = options_bin[4]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (4) * options_bin[4]
 )
 
 circular_fixation_point option_selector_5 (
     trigger_width = fixation_width
-    trigger_watch_x = eye_h
-    trigger_watch_y = eye_v
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
     trigger_flag = eye_in_selector_5
     x_position = option_stim_selector_position_x (5)
     y_position = option_stim_selector_position_y (5)
     x_size = 1
-    color = (1 - eye_in_selector_5) + (eye_in_selector_5) * failure, eye_in_selector_5 * success + (1 - eye_in_selector_5), (1 - eye_in_selector_5)
-    alpha_multiplier = options_bin[5]
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (5) * options_bin[5]
+)
+
+circular_fixation_point option_selector_6 (
+    trigger_width = fixation_width
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
+    trigger_flag = eye_in_selector_6
+    x_position = option_stim_selector_position_x (6)
+    y_position = option_stim_selector_position_y (6)
+    x_size = 1
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (6) * options_bin[6]
+)
+
+circular_fixation_point option_selector_7 (
+    trigger_width = fixation_width
+    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
+    trigger_flag = eye_in_selector_7
+    x_position = option_stim_selector_position_x (7)
+    y_position = option_stim_selector_position_y (7)
+    x_size = 1
+    color = red, green, blue
+    alpha_multiplier = view_option_selectors (7) * options_bin[7]
 )
 
 %define display_option_selectors()
@@ -291,15 +385,7 @@ circular_fixation_point option_selector_5 (
     live_queue_stimulus(option_selector_3)
     live_queue_stimulus(option_selector_4)
     live_queue_stimulus(option_selector_5)
-    update_display()
-%end
-
-%define remove_option_selectors()
-    dequeue_stimulus(option_selector_0)
-    dequeue_stimulus(option_selector_1)
-    dequeue_stimulus(option_selector_2)
-    dequeue_stimulus(option_selector_3)
-    dequeue_stimulus(option_selector_4)
-    dequeue_stimulus(option_selector_5)
+    live_queue_stimulus(option_selector_6)
+    live_queue_stimulus(option_selector_7)
     update_display()
 %end
