@@ -41,7 +41,7 @@ group 'Sequence variables' {
     var stim_index (scope = local; default_value = 0)
     var pair_index (scope = local; default_value = 0)
     var option_stim_index (scope = local; default_value = 0)
-    var stim_dist_cum = [0, 0, 0, 0, 0, 0]
+    var stim_dist_cum = [1, 1, 1, 1, 1, 1, 1, 1]
 }
 
 group 'Stimulus drift variables' {
