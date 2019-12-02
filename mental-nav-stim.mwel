@@ -3,23 +3,24 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-%define num_stims = 8
+%define num_stims = 6
 %define mask_width = display_bounds('right')
 
 group 'Experiment settings' {
     var use_mouse = 1
 }
+
 group 'Sequence variables' {
     var start_stim_index = 0
     var end_stim_index = 0
     var stim_index (scope = local; default_value = 0)
     var pair_index = 0
     var option_stim_index (scope = local; default_value = 0)
-    var stim_dist_cum = [0, 0, 0, 0, 0, 0, 0, 0]
+    var stim_dist_cum = [0, 0, 0, 0, 0, 0]
     var num_options = 1
     var num_pairs = num_stims * num_stims
     var depth_display = 1
-    var testing = 0
+    var testing = 1
     var selected = -1
 }
 
@@ -54,8 +55,8 @@ group 'Phase durations' {
     var pre_drift_dur = 1s
     var post_drift_dur = 1s
     var pre_choice_dur = 1s
-    var choice_dur = 3s
-    var feedback_dur = 3s
+    var choice_dur = 5s
+    var feedback_dur = 2s
 }
 
 group 'Phases' {
@@ -112,6 +113,7 @@ group 'Python parameters' {
         step = 1
     )
 % end
+
 /*
 %define for_each_pair ()
     range_replicator (
@@ -131,8 +133,8 @@ group 'Python parameters' {
 %define view_fixation_point = fixation
 %define view_center_indicator = pre_drift or drift or post_drift or pre_choice or choice or feedback
 %define view_window_mask = not choice
-%define view_stims = pre_drift or drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
-%define view_stim_masks = drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
+%define view_stims = (pre_drift and ${stim_index} == start_stim_index) or drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
+%define view_stim_masks = (pre_drift and ${stim_index} != start_stim_index) or drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
 %define view_option_stims = ((pre_choice or choice) and (options_bin[${option_stim_index}])) or (feedback and selected == ${option_stim_index})
 %define view_option_selectors (index) (choice or (feedback and selected == index))
 var hide_mouse = YES
@@ -236,7 +238,7 @@ stimulus_group mask_stims {
 stimulus_group option_stims {
     for_each_option_stim {
         image_file 'img_option_stim_${option_stim_index}' (
-            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${option_stim_index}.jpg"
+            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${option_stim_index}.jpg"
             x_size = option_stim_size
             x_position = option_stim_position_x
             y_position = option_stim_position_y
@@ -248,7 +250,7 @@ stimulus_group option_stims {
 stimulus_group img_stims {
     for_each_stim {
         image_file 'img_stim_${stim_index}' (
-            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/imageset5/${stim_index}.jpg"
+            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${stim_index}.jpg"
             x_size = stim_size
             x_position = stim_position_x_wrapped
 	        y_position = 0
@@ -345,7 +347,7 @@ circular_fixation_point option_selector_5 (
     color = red, green, blue
     alpha_multiplier = view_option_selectors (5) * options_bin[5]
 )
-
+/*
 circular_fixation_point option_selector_6 (
     trigger_width = fixation_width
     trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
@@ -369,7 +371,7 @@ circular_fixation_point option_selector_7 (
     color = red, green, blue
     alpha_multiplier = view_option_selectors (7) * options_bin[7]
 )
-
+*/
 %define display_option_selectors()
     live_queue_stimulus(option_selector_0)
     live_queue_stimulus(option_selector_1)
@@ -377,7 +379,9 @@ circular_fixation_point option_selector_7 (
     live_queue_stimulus(option_selector_3)
     live_queue_stimulus(option_selector_4)
     live_queue_stimulus(option_selector_5)
+    /*
     live_queue_stimulus(option_selector_6)
     live_queue_stimulus(option_selector_7)
+    */
     update_display()
 %end

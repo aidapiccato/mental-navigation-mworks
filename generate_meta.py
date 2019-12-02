@@ -1,13 +1,13 @@
 import pickle
 import numpy as np
 
-def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
+def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename, num_options_p=None):
     '''
     :param n_condition_repeats: Number of times a pair is repeated (each time with different inter image dist)
     :param n_stims: Number of distinct stimuli
     :param max_dist: Maximum distance in units of padding between stimuli
     :param prob: Probability for geometric distribution
-    :return: Nothing. Save s
+    :return: Nothing.
     '''
     meta = {
         'stim_drift_direction': [],
@@ -35,8 +35,12 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename):
             end_stim_index = end_idx[pair_index]
             other = np.arange(num_stims)
             other = other[np.where(other != end_stim_index)]
-            num_options = np.random.choice([2, 4, num_stims])
-            options_ixs = np.asarray(np.concatenate(([end_stim_index], np.random.choice(other, num_options - 1, replace=False))), dtype=int)
+            if num_options_p is None:
+                num_options = np.random.choice([2, 4, num_stims])
+            else:
+                num_options = num_options_p
+            options_ixs = np.asarray(np.concatenate(([end_stim_index],
+                np.random.choice(other, num_options - 1, replace=False))), dtype=int)
             options_pos, options_bin = np.zeros(num_stims), np.zeros(num_stims)
             options_bin[options_ixs] = 1
             options_pos[options_ixs] = np.random.permutation(np.arange(num_options))

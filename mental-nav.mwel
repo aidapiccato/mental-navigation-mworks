@@ -2,7 +2,9 @@
 %include 'eye'
 %include 'keyboard_device'
 %include 'mouse'
+
 var sync = -1
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Display
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -22,6 +24,7 @@ stimulus_display (
 var num_trials_per_block = 10
 
 var trials_from_meta = 1
+
 var selection_index = 0
 
 selection trial_index (
@@ -31,8 +34,8 @@ selection trial_index (
     autoreset = YES
 )
 
-var options_pos = [0, 0, 0, 0, 0, 0, 0, 0]
-var options_bin = [0, 0, 0, 0, 0, 0, 0, 0]
+var options_pos = [0, 0, 0, 0, 0, 0]
+var options_bin = [0, 0, 0, 0, 0, 0]
 
 %define update_trial_params_from_meta ()
     trials_from_meta = 1
@@ -50,22 +53,15 @@ var options_bin = [0, 0, 0, 0, 0, 0, 0, 0]
     stim_drift_direction = py_stim_drift_direction
 %end
 
-%define update_trial_params_from_meta_ones ()
-    trials_from_meta = 1
-    selection_index = trial_index
-    run_python_string(get_metaparameters())
-    report('Trial $py_meta_index')
-    start_stim_index = py_start_stim_index
-    end_stim_index = py_end_stim_index
-    pair_index = py_pair_index
-    stim_dist_cum = py_stim_dist_cum
-    py_meta_index = py_meta_index
-    options_bin = py_options_bin
-    options_pos = py_options_pos
-    num_options = py_num_options
-    stim_drift_direction = py_stim_drift_direction
+%define increment_alpha_m ()
+    if (nconsecsuccess == nconsecsucc_increment) {
+        nconsecsuccess = 0
+        alpha_m = min(1, alpha_m_inc + alpha_m)
+    }
+    else {
+        alpha_m = alpha_m
+    }
 %end
-
 
 %define reset_vars ()
     choice = 0
@@ -101,15 +97,17 @@ protocol 'Mental Navigation - Sequential' {
 	        live_queue_stimulus (mask_stims[stim_index])
         }
     }
+
     live_queue_stimulus (window_mask_left)
     live_queue_stimulus (window_mask_right)
 
     reset_selection (trial_index)
     run_python_file('mental-nav_utils.py')
+
     block (nsamples = 100) {
         trial {
             sync = 0
-            update_trial_params_from_meta_ones()
+            update_trial_params_from_meta()
 
             for_each_option_stim {
                 list {
@@ -123,14 +121,10 @@ protocol 'Mental Navigation - Sequential' {
                 state 'Begin fixation' {
                     report ("*********BEGIN FIXATION**********")
 
-                     // can put this in separate method
-                    if (nconsecsuccess == nconsecsucc_increment) {
-                        nconsecsuccess = 0
-                        alpha_m = min(1, alpha_m_inc + alpha_m)
+                    if (not testing) {
+                        increment_alpha_m ()
                     }
-                    else {
-                        alpha_m = alpha_m
-                    }
+
                     fixation = 1
 
                     queue_stimulus (fixation_point)
@@ -138,6 +132,7 @@ protocol 'Mental Navigation - Sequential' {
                     update_display ()
 
                     wait (1s)
+
                     simulate_fixation ()
 
                     goto (
@@ -254,14 +249,6 @@ protocol 'Mental Navigation - Sequential' {
                         when = eye_in_selector_5 and not((1 - use_mouse) * (saccade)) and options_bin[5]
                     )
                     goto (
-                        target = 'Selected 6'
-                        when = eye_in_selector_6 and not((1 - use_mouse) * (saccade)) and options_bin[6]
-                    )
-                    goto (
-                        target = 'Selected 7'
-                        when = eye_in_selector_7 and not((1 - use_mouse) * (saccade)) and options_bin[7]
-                    )
-                    goto (
                         target = 'Ignore'
                         when = timer_expired(choice_timer)
                     )
@@ -338,30 +325,6 @@ protocol 'Mental Navigation - Sequential' {
                         when = end_stim_index != 5
                     )
                 }
-                state 'Selected 6' {
-                    report ("************SELECTED 6************")
-                    selected = 6
-                    goto (
-                        target = 'Success'
-                        when = end_stim_index == 6
-                    )
-                    goto (
-                        target = 'Failure'
-                        when = end_stim_index != 6
-                    )
-                }
-                state 'Selected 7' {
-                    report ("************SELECTED 7************")
-                    selected = 7
-                    goto (
-                        target = 'Success'
-                        when = end_stim_index == 7
-                    )
-                    goto (
-                        target = 'Failure'
-                        when = end_stim_index != 7
-                    )
-                }
                 state 'Success' {
                     report ("*********SUCCESS**********")
 
@@ -372,8 +335,6 @@ protocol 'Mental Navigation - Sequential' {
                     choice = 0
                     feedback = 1
                     sync = 6
-
-
 
                     wait (feedback_dur)
                     goto ('End trial')

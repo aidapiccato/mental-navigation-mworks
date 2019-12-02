@@ -1,10 +1,9 @@
-import math
 import pickle as pk
 
 dir_path = "/Users/aidapiccato/PycharmProjects/mental-navigation-mworks/pickle_meta"
 meta_fn_tag = getvar('trials_from_meta')
 
-fn = '%s/meta_ones.pkl' % dir_path
+fn = '%s/1.pkl' % dir_path
 meta = pk.load(open(fn, 'rb'))
 
 def get_metaparameters():
