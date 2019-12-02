@@ -47,10 +47,10 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename, num_
             meta['num_options'].append(num_options)
             meta['options_pos'].append(options_pos)
             meta['options_bin'].append(options_bin)
-            stim_dist = np.random.geometric(prob, size=num_stims)
-            stim_dist = np.clip(stim_dist, 1, max_dist)
-            stim_dist_cum = np.cumsum(stim_dist)
-            meta['stim_dist_cum'].append(stim_dist_cum)
+            # stim_dist = np.random.geometric(prob, size=num_stims)
+            # stim_dist = np.clip(stim_dist, 1, max_dist)
+            # stim_dist_cum = np.cumsum(stim_dist)
+            # meta['stim_dist_cum'].append(stim_dist_cum)
 
     with open(filename, 'wb') as f:
         pickle.dump(meta, f)
