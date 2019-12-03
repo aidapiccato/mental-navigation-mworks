@@ -1,7 +1,7 @@
 import pickle
 import numpy as np
 
-def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename, num_options_p=None):
+def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename, num_options_p=None, fixed_dist=None):
     '''
     :param n_condition_repeats: Number of times a pair is repeated (each time with different inter image dist)
     :param n_stims: Number of distinct stimuli
@@ -47,10 +47,15 @@ def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename, num_
             meta['num_options'].append(num_options)
             meta['options_pos'].append(options_pos)
             meta['options_bin'].append(options_bin)
-            # stim_dist = np.random.geometric(prob, size=num_stims)
-            # stim_dist = np.clip(stim_dist, 1, max_dist)
-            # stim_dist_cum = np.cumsum(stim_dist)
-            # meta['stim_dist_cum'].append(stim_dist_cum)
+            if fixed_dist is None:
+                stim_dist = np.random.geometric(prob, size=num_stims)
+                stim_dist = np.clip(stim_dist, 1, max_dist)
+                stim_dist_cum = np.cumsum(stim_dist)
+                meta['stim_dist_cum'].append(stim_dist_cum)
+            else:
+                stim_dist = np.repeat([fixed_dist], num_stims)
+                stim_dist_cum = np.cumsum(stim_dist)
+                meta['stim_dist_cum'].append(stim_dist_cum)
 
     with open(filename, 'wb') as f:
         pickle.dump(meta, f)

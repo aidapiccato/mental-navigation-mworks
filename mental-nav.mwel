@@ -2,7 +2,6 @@
 %include 'eye'
 %include 'keyboard_device'
 %include 'mouse'
-
 var sync = -1
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -15,11 +14,9 @@ stimulus_display (
     announce_stimuli_on_implicit_updates = false
 )
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Experiment parameters
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 var num_trials_per_block = 10
 
@@ -49,6 +46,7 @@ var options_bin = [0, 0, 0, 0, 0, 0]
     options_bin = py_options_bin
     options_pos = py_options_pos
     num_options = py_num_options
+    stim_dist_cum = py_stim_dist_cum
     stim_drift_direction = py_stim_drift_direction
 %end
 
@@ -80,9 +78,13 @@ var options_bin = [0, 0, 0, 0, 0, 0]
 %end
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Protocol
+// Protocols
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+protocol 'Set for testing'{
+    testing = 1
+    rand_drift_pause_dur = 1
+}
 
 protocol 'Mental Navigation - Sequential' {
     start_io_device (eye_tracker)
@@ -192,6 +194,11 @@ protocol 'Mental Navigation - Sequential' {
                     drift_transition = 0
                     drift_pause = 1
                     sync = 4
+
+                    if rand_drift_pause_dur {
+                        drift_pause_dur = rand(0, 0.5) + 0.5
+                    }
+
 
                     wait (drift_pause_dur)
 
