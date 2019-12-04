@@ -8,6 +8,9 @@
 
 group 'Experiment settings' {
     var use_mouse = 1
+    var testing = 1
+    var use_keyboard = 0
+    var rand_drift_pause_dur = 0
 }
 
 group 'Sequence variables' {
@@ -20,8 +23,6 @@ group 'Sequence variables' {
     var num_options = 1
     var num_pairs = num_stims * num_stims
     var depth_display = 1
-    var testing = 1
-    var rand_drift_pause_dur = 0
     var selected = -1
 }
 
@@ -42,7 +43,7 @@ group 'Stimulus display variables' {
     var alpha_m_inc = 0.1
     var nconsecsucc_increment = 3
 
-    var num_visible_stims = 2
+    var num_visible_stims = 1
 }
 
 group 'Stimulus drift variables' {
@@ -271,14 +272,14 @@ stimulus_group img_stims {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 group 'Option selector flags' {
-    var eye_in_selector_0 = 0
-    var eye_in_selector_1 = 0
-    var eye_in_selector_2 = 0
-    var eye_in_selector_3 = 0
-    var eye_in_selector_4 = 0
-    var eye_in_selector_5 = 0
-    var eye_in_selector_6 = 0
-    var eye_in_selector_7 = 0
+    var selected_0 = 0
+    var selected_1 = 0
+    var selected_2 = 0
+    var selected_3 = 0
+    var selected_4 = 0
+    var selected_5 = 0
+    var selected_6 = 0
+    var selected_7 = 0
 }
 
 // Option selector 'index' corresponds to the sequence index
@@ -287,7 +288,7 @@ circular_fixation_point option_selector_0 (
     trigger_width = fixation_width
     trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
     trigger_watch_y = pointer_y //eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = eye_in_selector_0
+    trigger_flag = selected_0
     x_position = option_stim_selector_position_x (0)
     y_position = option_stim_selector_position_y (0)
     x_size = 1
@@ -299,7 +300,7 @@ circular_fixation_point option_selector_1 (
     trigger_width = fixation_width
     trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
     trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = eye_in_selector_1
+    trigger_flag = selected_1
     x_position = option_stim_selector_position_x (1)
     y_position = option_stim_selector_position_y (1)
     x_size = 1
@@ -309,9 +310,9 @@ circular_fixation_point option_selector_1 (
 
 circular_fixation_point option_selector_2 (
     trigger_width = fixation_width
-    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
+    trigger_watch_x = pointer_x// eye_h * (1 - use_mouse) + use_mouse * pointer_x
     trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = eye_in_selector_2
+    trigger_flag = selected_2
     x_position = option_stim_selector_position_x (2)
     y_position = option_stim_selector_position_y (2)
     x_size = 1
@@ -323,7 +324,7 @@ circular_fixation_point option_selector_3 (
     trigger_width = fixation_width
     trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
     trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = eye_in_selector_3
+    trigger_flag = selected_3
     x_position = option_stim_selector_position_x (3)
     y_position = option_stim_selector_position_y (3)
     x_size = 1
@@ -335,7 +336,7 @@ circular_fixation_point option_selector_4 (
     trigger_width = fixation_width
     trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
     trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = eye_in_selector_4
+    trigger_flag = selected_4
     x_position = option_stim_selector_position_x (4)
     y_position = option_stim_selector_position_y (4)
     x_size = 1
@@ -347,7 +348,7 @@ circular_fixation_point option_selector_5 (
     trigger_width = fixation_width
     trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
     trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = eye_in_selector_5
+    trigger_flag = selected_5
     x_position = option_stim_selector_position_x (5)
     y_position = option_stim_selector_position_y (5)
     x_size = 1
@@ -359,7 +360,7 @@ circular_fixation_point option_selector_6 (
     trigger_width = fixation_width
     trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
     trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = eye_in_selector_6
+    trigger_flag = selected_6
     x_position = option_stim_selector_position_x (6)
     y_position = option_stim_selector_position_y (6)
     x_size = 1
@@ -371,7 +372,7 @@ circular_fixation_point option_selector_7 (
     trigger_width = fixation_width
     trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
     trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = eye_in_selector_7
+    trigger_flag = selected_7
     x_position = option_stim_selector_position_x (7)
     y_position = option_stim_selector_position_y (7)
     x_size = 1

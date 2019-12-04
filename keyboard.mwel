@@ -1,0 +1,32 @@
+%define keyboard_device ()
+    iodevice/usbhid_generic (
+        usage_page = 1
+        usage = 6
+        //log_all_input_values = true
+        )
+%end
+
+%define key_name_to_usage = {
+    'a': 4,
+    'l': 15,
+}
+
+%define keyboard_channel (key, value)
+    iochannel/usbhid_generic_input_channel (
+        usage_page = 7
+        usage = key_name_to_usage[key]
+        value = value
+    )
+%end
+
+var a_pressed = 0
+var l_pressed = 0
+
+keyboard_device keyboard {
+    keyboard_channel (key = 'a'; value = a_pressed)
+    keyboard_channel (key = 'l'; value = l_pressed)
+}
+
+
+
+
