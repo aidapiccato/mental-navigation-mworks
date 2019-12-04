@@ -1,6 +1,6 @@
 %include 'mental-nav-stim'
 %include 'eye'
-%include 'keyboard_device'
+%include 'keyboard'
 %include 'mouse'
 var sync = -1
 
@@ -84,7 +84,8 @@ var options_bin = [0, 0, 0, 0, 0, 0]
 protocol 'Set for testing keyboard'{
     testing = 1
     rand_drift_pause_dur = 1
-    keyboard = 1
+    use_keyboard = 1
+    use_mouse = 0
 }
 
 protocol 'Mental Navigation - Sequential' {
@@ -104,7 +105,7 @@ protocol 'Mental Navigation - Sequential' {
     live_queue_stimulus (window_mask_right)
 
     reset_selection (trial_index)
-    run_python_file('mental-nav_utils.py')
+    run_python_file ('mental-nav_utils.py')
 
     block (nsamples = 100) {
         trial {
@@ -262,27 +263,27 @@ protocol 'Mental Navigation - Sequential' {
                     )
                     goto (
                         target = 'Selected 0'
-                        when = (use_keyboard * a_pressed) or (use_mouse * selected_0 and not((1 - use_mouse) * (saccade)) and options_bin[0])
+                        when = options_bin[0] * ((use_keyboard * keyboard_selected (0) ) or use_mouse * (selected_0 and not((1 - use_mouse) * (saccade)) and options_bin[0]))
                     )
                     goto (
                         target = 'Selected 1'
-                        when = (use_keyboard * l_pressed) or (use_mouse * selected_1 and not((1 - use_mouse) * (saccade)) and options_bin[1])
+                        when = options_bin[1] * ((use_keyboard * keyboard_selected (1) ) or use_mouse * (selected_1 and not((1 - use_mouse) * (saccade)) and options_bin[1]))
                     )
                     goto (
                         target = 'Selected 2'
-                        when = selected_2 and not((1 - use_mouse) * (saccade)) and options_bin[2]
+                        when = options_bin[2] * ((use_keyboard * keyboard_selected (2) ) or use_mouse * (selected_2 and not((1 - use_mouse) * (saccade)) and options_bin[2]))
                     )
                     goto (
                         target = 'Selected 3'
-                        when = selected_3 and not((1 - use_mouse) * (saccade)) and options_bin[3]
+                        when = options_bin[3] * ((use_keyboard * keyboard_selected (3) ) or use_mouse * (selected_3 and not((1 - use_mouse) * (saccade)) and options_bin[3]))
                     )
                     goto (
                         target = 'Selected 4'
-                        when = selected_4 and not((1 - use_mouse) * (saccade)) and options_bin[4]
+                        when = options_bin[4] * ((use_keyboard * keyboard_selected (4) ) or use_mouse * (selected_4 and not((1 - use_mouse) * (saccade)) and options_bin[4]))
                     )
                     goto (
                         target = 'Selected 5'
-                        when = selected_5 and not((1 - use_mouse) * (saccade)) and options_bin[5]
+                        when = options_bin[5] * ((use_keyboard * keyboard_selected (5) ) or use_mouse * (selected_5 and not((1 - use_mouse) * (saccade)) and options_bin[5]))
                     )
                     goto (
                         target = 'Ignore'

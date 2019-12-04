@@ -191,6 +191,7 @@ group 'Python parameters' {
 
 %define alpha_multiplier_drift = (1 - testing) * min(max(alpha_m * stim_drift_dur, 0), 1) + testing
 
+%define keyboard_selected (index) options_pos[index] == 0 and l_pressed or options_pos[index] == 1 and a_pressed
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Stimuli
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -246,7 +247,7 @@ stimulus_group mask_stims {
 stimulus_group option_stims {
     for_each_option_stim {
         image_file 'img_option_stim_${option_stim_index}' (
-            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${option_stim_index}.jpg"
+            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${option_stim_index}.jpg"
             x_size = option_stim_size
             x_position = option_stim_position_x
             y_position = option_stim_position_y
@@ -258,7 +259,7 @@ stimulus_group option_stims {
 stimulus_group img_stims {
     for_each_stim {
         image_file 'img_stim_${stim_index}' (
-            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${stim_index}.jpg"
+            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${stim_index}.jpg"
             x_size = stim_size
             x_position = stim_position_x_wrapped
 	        y_position = 0

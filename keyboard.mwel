@@ -2,13 +2,14 @@
     iodevice/usbhid_generic (
         usage_page = 1
         usage = 6
+        preferred_location_id = 338690048
         //log_all_input_values = true
         )
 %end
 
 %define key_name_to_usage = {
     'a': 4,
-    'l': 15,
+    'l': 15
 }
 
 %define keyboard_channel (key, value)
