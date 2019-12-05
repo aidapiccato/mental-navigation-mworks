@@ -263,27 +263,27 @@ protocol 'Mental Navigation - Sequential' {
                     )
                     goto (
                         target = 'Selected 0'
-                        when = options_bin[0] * ((use_keyboard * keyboard_selected (0) ) or use_mouse * (selected_0 and not((1 - use_mouse) * (saccade)) and options_bin[0]))
+                        when = options_bin[0] * ((use_keyboard * keyboard_selected (0) ) or use_mouse * (selected_0))
                     )
                     goto (
                         target = 'Selected 1'
-                        when = options_bin[1] * ((use_keyboard * keyboard_selected (1) ) or use_mouse * (selected_1 and not((1 - use_mouse) * (saccade)) and options_bin[1]))
+                        when = options_bin[1] * ((use_keyboard * keyboard_selected (1) ) or use_mouse * (selected_1))
                     )
                     goto (
                         target = 'Selected 2'
-                        when = options_bin[2] * ((use_keyboard * keyboard_selected (2) ) or use_mouse * (selected_2 and not((1 - use_mouse) * (saccade)) and options_bin[2]))
+                        when = options_bin[2] * ((use_keyboard * keyboard_selected (2) ) or use_mouse * (selected_2))
                     )
                     goto (
                         target = 'Selected 3'
-                        when = options_bin[3] * ((use_keyboard * keyboard_selected (3) ) or use_mouse * (selected_3 and not((1 - use_mouse) * (saccade)) and options_bin[3]))
+                        when = options_bin[3] * ((use_keyboard * keyboard_selected (3) ) or use_mouse * (selected_3))
                     )
                     goto (
                         target = 'Selected 4'
-                        when = options_bin[4] * ((use_keyboard * keyboard_selected (4) ) or use_mouse * (selected_4 and not((1 - use_mouse) * (saccade)) and options_bin[4]))
+                        when = options_bin[4] * ((use_keyboard * keyboard_selected (4) ) or use_mouse * (selected_4))
                     )
                     goto (
                         target = 'Selected 5'
-                        when = options_bin[5] * ((use_keyboard * keyboard_selected (5) ) or use_mouse * (selected_5 and not((1 - use_mouse) * (saccade)) and options_bin[5]))
+                        when = options_bin[5] * ((use_keyboard * keyboard_selected (5) ) or use_mouse * (selected_5))
                     )
                     goto (
                         target = 'Ignore'

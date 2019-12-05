@@ -4,11 +4,13 @@ group 'Experiment variables' {
     var learned = 0
 }
 
-%define reset_vars_for_block () {
+var performance = 0
+%define reset_vars_for_block ()
     n_blocks = n_blocks + 1
     n_trials_in_block = 0
     learned = 0
-}
+
+%end
 
 var n_images = 2
 var n_conditions = n_images * n_images * 2
@@ -20,19 +22,27 @@ selection trial_index (
     autoreset = YES
 )
 
+selection block_index (
+    values = 0:2
+    selection = sequential
+    advance_on_accept = YES
+    autoreset = YES
+)
+
 protocol 'Mental Navigation - Mapping' {
     report ('***********BEGIN SUBSESSION***********')
-    block () {
-        report ('***********BEGIN BLOCK***********')
-        n_images = 2
-        n_conditions = n_images * n_images * 2
-        reset_selection (trial_index)
-        block (nsamples = n_conditions * 100) {
-            trial {
+    reset_selection (block_index)
+    block (nsamples = 3 * 100) {
+        trial {
+            report ('***********BEGIN BLOCK $block_index***********')
+            n_images = 2
+            n_trials_in_block = 0
+            n_conditions = n_images * n_images * 2
+            reset_selection (trial_index)
+            trial (nsamples = n_conditions) {
                 task {
                     state 'Begin trial' {
-                        report ('***********BEGIN TRIAL***********')
-                        report ('trial_index = $trial_index')
+                        report ('***********BEGIN TRIAL $trial_index, BLOCK $block_index***********')
                         wait (2s)
                         goto ( 'End trial' )
                     }
@@ -43,13 +53,15 @@ protocol 'Mental Navigation - Mapping' {
 
                         accept_selections (trial_index)
 
-
-
                         if (n_trials_in_block == n_conditions) {
                             performance = rand(0, 1)
                             if (performance > 0.5) {
                                 report ('restarting block')
-                                reset_selection (trial_index)
+                                reject_selections (block_index)
+                            }
+                            if (performance <= 0.5) {
+                                report ('moving on to next block')
+                                accept_selections (block_index)
                             }
                         }
                         yield ()

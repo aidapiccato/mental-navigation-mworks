@@ -1,6 +1,22 @@
 import pickle
 import numpy as np
 
+
+def generate_meta_block(min_num_images=2, max_num_images=6, num_images_repeats=5, image_folder_path='/images/objects1'):
+    meta = {
+        'num_images': [],
+        'image_paths': [],
+        'block_meta_index': []
+    }
+    for num_images_idx, num_images in enumerate(range(min_num_images, max_num_images + 1)):
+        for repeat_idx in range(num_images_repeats):
+            meta['block_meta_index'].append(repeat_idx + num_images_idx * (max_num_images - min_num_images))
+            meta['num_images'].append(num_images)
+            image_ixs = np.random.permutation(np.arange(num_images))
+            image_paths = np.asarray(['%s/%s' % (image_folder_path, image_ix) for image_ix in image_ixs], dtype=str)
+            meta['image_paths'].append(image_paths)
+
+    return meta
 def generate_meta(n_condition_repeats, num_stims, max_dist, prob, filename, num_options_p=None, fixed_dist=None):
     '''
     :param n_condition_repeats: Number of times a pair is repeated (each time with different inter image dist)
