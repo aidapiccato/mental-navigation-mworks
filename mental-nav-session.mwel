@@ -1,5 +1,28 @@
-group 'Experiment variables' {
+group 'Python variables' {
+    var py_seq_index = 0
+    var py_seqs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    var py_n_stims = 0
+    var py_stim_paths = []
+}
+group 'Sequence variables' {
+    var n_stims = 0
+    var stim_paths = [0, 0, 0, 0, 0, 0]
+    var n_conditions = 0
     var n_blocks = 0
+    var block_index = 0
+}
+group 'Block variables' {
+    var trial_index = 0
+}
+
+
+group 'Experiment variables' {
+    var meta_index = 1
+    var subject_id = 0
+    var seq_index = 0
+    var seq_id = 0
+    var seqs = [0]
+
     var n_trials_in_block = 0
     var learned = 0
 }
@@ -9,11 +32,8 @@ var performance = 0
     n_blocks = n_blocks + 1
     n_trials_in_block = 0
     learned = 0
-
 %end
 
-var n_images = 2
-var n_conditions = n_images * n_images * 2
 
 selection trial_index (
     values = 0:n_conditions
@@ -29,15 +49,32 @@ selection block_index (
     autoreset = YES
 )
 
-protocol 'Mental Navigation - Mapping' {
-    report ('***********BEGIN SUBSESSION***********')
-    reset_selection (block_index)
+protocol '1. Set subject ID = 1' {
+    subject_id = 1
+}
+
+protocol '2. Load sequences' {
+    run_python_file('mental-nav_utils.py')
+    run_python_string(get_subject_metaparameters())
+    seqs = py_seqs
+    seq_index = py_seq_index
+    seq_id = seqs[seq_index]
+}
+
+%define update_sequence_params_from_meta ()
+    run_python_string(get_seq_metaparameters())
+    n_stims = py_n_stims
+    stim_paths = py_stim_paths
+    n_conditions = n_stims * n_stims * 2
+
+%end
+
+protocol '3. Begin experiment' {
+    update_sequence_params_from_meta()
     block (nsamples = 3 * 100) {
         trial {
             report ('***********BEGIN BLOCK $block_index***********')
-            n_images = 2
             n_trials_in_block = 0
-            n_conditions = n_images * n_images * 2
             reset_selection (trial_index)
             trial (nsamples = n_conditions) {
                 task {

@@ -22,7 +22,10 @@ var num_trials_per_block = 10
 
 var trials_from_meta = 1
 
-var selection_index = 0
+var selection_trial_index = 0
+var selection_seq_index = 0
+
+var seq_index = 0
 
 selection trial_index (
     values = 0:num_pairs
@@ -34,9 +37,13 @@ selection trial_index (
 var options_pos = [0, 0, 0, 0, 0, 0]
 var options_bin = [0, 0, 0, 0, 0, 0]
 
+%define update_block_params_from_meta ()
+    selection_block_index = block_index
+%end
+
 %define update_trial_params_from_meta ()
     trials_from_meta = 1
-    selection_index = trial_index
+    selection_trial_index = trial_index
     run_python_string(get_metaparameters())
     report('Trial $py_meta_index')
     start_stim_index = py_start_stim_index
