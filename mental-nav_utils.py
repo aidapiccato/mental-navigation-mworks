@@ -1,8 +1,9 @@
 import pickle as pk
 
-username = 'apiccato'
-# username = 'aidapiccato'
+# username = 'apiccato'
+username = 'aidapiccato'
 dir_path = "/Users/%s/PycharmProjects/mental-navigation-mworks/pickle_meta" % username
+
 meta_fn_tag = getvar('meta_index')
 
 seq_fn = "%s/seq_%s.pkl" % (dir_path, meta_fn_tag)

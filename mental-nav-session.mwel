@@ -8,12 +8,11 @@ group 'Python variables' {
 group 'Sequence variables' {
     var n_stims = 0
     var stim_paths = ['', '', '', '', '', '']
-    var n_conditions = 0
-    var block_index = -1
+    var n_conditions = 1
 }
 
 group 'Block variables' {
-    var trial_index = 0
+    var n_trials = 0 
     var trial_id = 0
 }
 
@@ -25,21 +24,6 @@ group 'Experiment variables' {
     var seqs = [0]
 }
 
-var performance = 0
-
-%define new_block ()
-    reset_selections(trial_index)
-    block_index = block_index + 1
-%end
-
-%define new_seq ()
-    block_index = 0
-    seq_index = seq_index + 1
-    update_sequence_params_from_meta ()
-
-%end
-
-
 %define update_sequence_params_from_meta ()
     run_python_string(get_seq_metaparameters())
     n_stims = py_n_stims
@@ -47,13 +31,23 @@ var performance = 0
     n_conditions = n_stims * n_stims * 2
 %end
 
+%define get_n_conditions = n_conditions
+
+/*
 selection trial_index (
-    values = 0:n_conditions
+    values = 0:1000
     selection = random_without_replacement
     advance_on_accept = YES
     autoreset = YES
 )
+*/
 
+selection block_index (
+    values = 0:10
+    selection = sequential_ascending
+    advance_on_accept = YES
+    autoreset = YES
+)
 
 protocol '1. Set subject ID = 1' {
     subject_id = 1
@@ -68,39 +62,65 @@ protocol '2. Load sequences' {
 }
 
 
+var trial_index (scope = local; default_value = 0)
+%define new_block ()
+    // reset_selections (trial_index)
+    accept_selections (block_index)
+%end
+
+%define new_seq ()
+    reset_selection (block_index)
+    seq_index = seq_index + 1
+    update_sequence_params_from_meta ()
+%end
+
+%define for_each_pair ()
+    range_replicator (
+        variable = trial_index
+        from = 0
+        to = get_n_conditions
+        step = 1
+        )
+%end
 protocol '3. Begin experiment' {
     report ('***********BEGIN EXPERIMENT***********')
     new_seq ()
+    new_block ()
     block (nsamples = 3 * 100) {
-        trial {
-            report ('***********BEGIN BLOCK $block_index***********')
-            new_block ()
-            trial (nsamples = n_conditions) {
-                task {
-                    state 'Begin trial' {
-                        report ('***********BEGIN TRIAL $trial_index, BLOCK $block_index***********')
-                        wait (2s)
-                        goto ( 'End trial' )
-                    }
-                    state 'End trial' {
-                        report ('***********END TRIAL***********')
-
-                        n_trials_in_block = n_trials_in_block + 1
-
-                        accept_selections (trial_index)
-
-                        if (n_trials_in_block == n_conditions) {
-                            performance = rand(0, 1)
-                            if (performance > 0.5) {
-                                report ('restarting block')
-                                reject_selections (block_index)
-                            }
-                            if (performance <= 0.5) {
-                                report ('moving on to next block')
-                                accept_selections (block_index)
-                            }
+        report ('***********BEGIN BLOCK $block_index***********')
+        list (
+            selection = random_without_replacement
+            nsamples = n_conditions
+            sampling_method = samples
+        ) {
+            for_each_pair {
+                trial {
+                    task {
+                        state 'Begin trial' {
+                            report ('***********BEGIN TRIAL $trial_index, BLOCK $block_index***********')
+                            wait (2s)
+                            goto ( 'End trial' )
                         }
-                        yield ()
+                        state 'End trial' {
+                            report ('***********END TRIAL***********')
+
+                            n_trials = n_trials + 1
+
+                            // accept_selections (trial_index)
+
+                            if (n_trials == n_conditions) {
+                                performance = rand(0, 1)
+                                if (performance < 0.5) {
+                                    report ('remaining in sequence')
+                                    new_block ()
+                                }
+                                if (performance >= 0.5) {
+                                    report ('moving on to next sequence')
+                                    new_seq ()
+                                }
+                            }
+                            yield ()
+                        }
                     }
                 }
             }

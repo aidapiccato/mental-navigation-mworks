@@ -2,11 +2,14 @@ import pickle
 import numpy as np
 from itertools import permutations
 import os
+
 MAX_NUM_STIMS = 6
 MIN_NUM_STIMS = 2
 N_SEQ_LEN_REPEATS = 2
 IMAGE_PATH = '/images/objects1'
-dir_path = "/Users/apiccato/PycharmProjects/mental-navigation-mworks/pickle_meta"
+USERNAME = 'aidapiccato'
+#USERNAME = 'apiccato'
+dir_path = "/Users/%s/PycharmProjects/mental-navigation-mworks/pickle_meta" % USERNAME
 
 def length_to_ids(l, n):
     '''
@@ -59,6 +62,7 @@ def generate_sess_meta(subject_id, meta_fn_tag):
 
 def generate_meta(
         meta_fn_tag,
+
         # experiment-level parameters
         min_num_stims=MIN_NUM_STIMS,
         max_num_stims=MAX_NUM_STIMS,
