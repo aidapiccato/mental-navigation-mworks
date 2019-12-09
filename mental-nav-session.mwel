@@ -4,17 +4,18 @@ group 'Python variables' {
     var py_n_stims = 0
     var py_stim_paths = []
 }
+
 group 'Sequence variables' {
     var n_stims = 0
-    var stim_paths = [0, 0, 0, 0, 0, 0]
+    var stim_paths = ['', '', '', '', '', '']
     var n_conditions = 0
-    var n_blocks = 0
-    var block_index = 0
-}
-group 'Block variables' {
-    var trial_index = 0
+    var block_index = -1
 }
 
+group 'Block variables' {
+    var trial_index = 0
+    var trial_id = 0
+}
 
 group 'Experiment variables' {
     var meta_index = 1
@@ -22,18 +23,29 @@ group 'Experiment variables' {
     var seq_index = 0
     var seq_id = 0
     var seqs = [0]
-
-    var n_trials_in_block = 0
-    var learned = 0
 }
 
 var performance = 0
-%define reset_vars_for_block ()
-    n_blocks = n_blocks + 1
-    n_trials_in_block = 0
-    learned = 0
+
+%define new_block ()
+    reset_selections(trial_index)
+    block_index = block_index + 1
 %end
 
+%define new_seq ()
+    block_index = 0
+    seq_index = seq_index + 1
+    update_sequence_params_from_meta ()
+
+%end
+
+
+%define update_sequence_params_from_meta ()
+    run_python_string(get_seq_metaparameters())
+    n_stims = py_n_stims
+    stim_paths = py_stim_paths
+    n_conditions = n_stims * n_stims * 2
+%end
 
 selection trial_index (
     values = 0:n_conditions
@@ -42,12 +54,6 @@ selection trial_index (
     autoreset = YES
 )
 
-selection block_index (
-    values = 0:2
-    selection = sequential
-    advance_on_accept = YES
-    autoreset = YES
-)
 
 protocol '1. Set subject ID = 1' {
     subject_id = 1
@@ -61,21 +67,14 @@ protocol '2. Load sequences' {
     seq_id = seqs[seq_index]
 }
 
-%define update_sequence_params_from_meta ()
-    run_python_string(get_seq_metaparameters())
-    n_stims = py_n_stims
-    stim_paths = py_stim_paths
-    n_conditions = n_stims * n_stims * 2
-
-%end
 
 protocol '3. Begin experiment' {
-    update_sequence_params_from_meta()
+    report ('***********BEGIN EXPERIMENT***********')
+    new_seq ()
     block (nsamples = 3 * 100) {
         trial {
             report ('***********BEGIN BLOCK $block_index***********')
-            n_trials_in_block = 0
-            reset_selection (trial_index)
+            new_block ()
             trial (nsamples = n_conditions) {
                 task {
                     state 'Begin trial' {
