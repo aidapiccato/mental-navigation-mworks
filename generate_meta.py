@@ -97,7 +97,7 @@ def generate_meta(
         for seq in seq_perms:
             seq_meta['seq_id'].append(seq_id)
             seq_meta['n_stims'].append(n_stims)
-            stim_paths = np.asarray(['%s/%s' % (image_folder_path, stim_ix) for stim_ix in seq], dtype=str)
+            stim_paths = np.asarray(['%s/%s.jpg' % (image_folder_path, stim_ix) for stim_ix in seq], dtype=str)
             seq_meta['stim_paths'].append(stim_paths)
             trial_meta = generate_trial_meta(n_stims, max_dist, prob, num_options, fixed_dist)
             seq_trial_meta.append(trial_meta)
@@ -148,15 +148,19 @@ def generate_trial_meta(num_stims, max_dist, prob, num_options, fixed_dist):
         options_bin[options_ixs] = 1
         options_pos[options_ixs] = np.random.permutation(np.arange(num_options))
         trial_meta['num_options'].append(num_options)
+        options_pos = np.concatenate((options_pos, np.zeros(MAX_NUM_STIMS - num_stims)))
+        options_bin = np.concatenate((options_bin, np.zeros(MAX_NUM_STIMS - num_stims)))
         trial_meta['options_pos'].append(options_pos)
         trial_meta['options_bin'].append(options_bin)
         if fixed_dist is None:
             stim_dist = np.random.geometric(prob, size=num_stims)
             stim_dist = np.clip(stim_dist, 1, max_dist)
             stim_dist_cum = np.cumsum(stim_dist)
+            stim_dist_cum = np.concatenate((stim_dist_cum, np.zeros(MAX_NUM_STIMS - num_stims)))
             trial_meta['stim_dist_cum'].append(stim_dist_cum)
         else:
             stim_dist = np.repeat([fixed_dist], num_stims)
             stim_dist_cum = np.cumsum(stim_dist)
+            stim_dist_cum = np.concatenate((stim_dist_cum, np.zeros(MAX_NUM_STIMS - num_stims)))
             trial_meta['stim_dist_cum'].append(stim_dist_cum)
     return trial_meta

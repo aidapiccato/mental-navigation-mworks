@@ -1,30 +1,18 @@
+// var n_stims_temp = 6
+stimulus_display (
+    background_color = br, bg, bb
+    redraw_on_every_refresh = true
+    announce_stimuli_on_implicit_updates = false
+)
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Variable groups
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-%define num_stims = 6
 %define mask_width = display_bounds('right')
 
-group 'Experiment settings' {
-    var use_mouse = 1
-    var testing = 1
-    var use_keyboard = 0
-    var rand_drift_pause_dur = 0
-}
+%define num_stims = 6
 
-group 'Sequence variables' {
-    var start_stim_index = 0
-    var end_stim_index = 0
-    var stim_index (scope = local; default_value = 0)
-    var pair_index = 0
-    var option_stim_index (scope = local; default_value = 0)
-    var stim_dist_cum = [0, 0, 0, 0, 0, 0]
-    var num_options = 1
-    var num_pairs = num_stims * num_stims
-    var depth_display = 1
-    var selected = -1
-}
 
 group 'Stimulus display variables' {
     var br = 0.5
@@ -103,13 +91,14 @@ group 'Python parameters' {
 ////// Range replicator macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 %define for_each_stim ()
     range_replicator (
         variable = stim_index
         from = 0
         to = num_stims - 1
         step = 1
-        )
+    )
 %end
 
 %define for_each_option_stim ()
@@ -120,25 +109,16 @@ group 'Python parameters' {
         step = 1
     )
 % end
-/*
-%define for_each_pair ()
-    range_replicator (
-        variable = pair_index
-        from = 0
-        to = num_pairs - 1
-        step = 1
-       )
-%end
-*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Visibility macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+var stim_index_mapper = [-1, -1, 2, -1, -1, 1, 0, -1]
+stim_dist_cum = [0, 0, 3, 0, 0, 2, 1, 0]
 %define view_fixation_point = fixation
 %define view_center_indicator = pre_drift or drift or post_drift or pre_choice or choice or feedback
 %define view_window_mask = not choice
-%define view_stims = (pre_drift and ${stim_index} == start_stim_index) or (drift and not testing) or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
+%define view_stims = stim_index_mapper[${stim_index}] != -1 and ((pre_drift and ${stim_index} == start_stim_index) or (drift and not testing) or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index))
 %define view_stim_masks = (pre_drift and ${stim_index} != start_stim_index) or drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
 %define view_option_stims = ((pre_choice or choice) and (options_bin[${option_stim_index}])) or (feedback and selected == ${option_stim_index})
 %define view_option_selectors (index) (choice or (feedback and selected == index))
@@ -155,7 +135,7 @@ group 'Python parameters' {
 ////// Stimulus drift macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-%define cum_dist = stim_dist_cum[num_stims - 1]
+%define cum_dist = stim_dist_cum[n_stims - 1]
 
 %define stim_offset = -start_stim_index * stim_size - stim_dist_cum[start_stim_index] * stim_padding
 
@@ -167,7 +147,7 @@ group 'Python parameters' {
 %define stim_drift_transition = drift_transition * stim_drift_direction * stim_drift_speed * stim_drift_transition_dur
 %define stim_drift_transition_end = stim_padding + stim_size
 
-%define stim_drift_symb_dist = (1 - cycle) * abs(wrap * num_stims - abs(start_stim_index - end_stim_index)) + (cycle) * num_stims
+%define stim_drift_symb_dist = (1 - cycle) * abs(wrap * n_stims - abs(start_stim_index - end_stim_index)) + (cycle) * n_stims
 %define stim_drift_spat_dist = (1 - cycle) * abs(wrap * cum_dist + stim_drift_direction * (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index])) + (cycle) * cum_dist
 
 %define stim_drift_dur = (next_frame_time() - stim_drift_start_time) / 1e6
@@ -175,12 +155,13 @@ group 'Python parameters' {
 
 %define stim_drift_end = (stim_drift_symb_dist * stim_size) + (stim_drift_spat_dist * stim_padding)
 
-%define stim_seq_length = (num_stims) * (stim_size) + cum_dist * stim_padding
+%define stim_seq_length = (n_stims) * (stim_size) + cum_dist * stim_padding
 
 %define stim_wrapped_right = ((stim_position_x < (display_bounds('left')  - stim_size/2)))
 %define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
 
-%define stim_position_x = stim_offset + ${stim_index} * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + drift * stim_drift + (1 - drift) * stim_drift_fixed
+
+%define stim_position_x = stim_offset + stim_index_mapper[${stim_index}] * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + drift * stim_drift + (1 - drift) * stim_drift_fixed
 %define stim_position_x_wrapped = (stim_wrapped_right + -1 * stim_wrapped_left) * stim_seq_length + stim_position_x
 
 %define option_stim_position_x = option_distance * cos(2 * pi() / num_options * options_pos[${option_stim_index}])
@@ -247,7 +228,7 @@ stimulus_group mask_stims {
 stimulus_group option_stims {
     for_each_option_stim {
         image_file 'img_option_stim_${option_stim_index}' (
-            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${option_stim_index}.jpg"
+            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${option_stim_index}.jpg"
             x_size = option_stim_size
             x_position = option_stim_position_x
             y_position = option_stim_position_y
@@ -259,7 +240,7 @@ stimulus_group option_stims {
 stimulus_group img_stims {
     for_each_stim {
         image_file 'img_stim_${stim_index}' (
-            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${stim_index}.jpg"
+            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${stim_index}.jpg"
             x_size = stim_size
             x_position = stim_position_x_wrapped
 	        y_position = 0

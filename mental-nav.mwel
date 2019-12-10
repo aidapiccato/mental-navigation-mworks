@@ -99,8 +99,10 @@ protocol 'Mental Navigation - Sequential' {
     start_io_device (eye_tracker)
     start_io_device (keyboard)
     start_io_device (pointer)
+
     live_queue_stimulus (center_indicator)
     live_queue_stimulus (center_indicator_fill)
+
     for_each_stim {
         list {
 	        live_queue_stimulus (img_stims[stim_index])
@@ -207,7 +209,6 @@ protocol 'Mental Navigation - Sequential' {
                     if (rand_drift_pause_dur) {
                         drift_pause_dur = rand(0, 0.5) + 0.5
                     }
-
 
                     wait (drift_pause_dur)
 

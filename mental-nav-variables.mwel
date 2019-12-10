@@ -1,0 +1,107 @@
+
+group 'Python variables' {
+    var py_seq_index = 0
+    var py_seqs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    var py_n_stims = 0
+    var py_stim_paths = []
+    var py_start_stim_index = 0
+    var py_end_stim_index = 0
+    var py_trial_id = 0
+    var py_stim_drift_direction = 0
+    var py_options_pos = []
+    var py_num_options = 0
+    var py_options_bin = []
+    var py_stim_dist_cum = []
+}
+var n_stims = 2
+
+group 'Sequence variables' {
+
+    var stim_paths = ['', '', '', '', '', '']
+    var n_conditions = 1
+}
+
+group 'Display variables' {
+    var margin = 10e-2
+}
+
+group 'Trial variables' {
+    var trial_id = 0
+
+    var stim_drift_speed = 8
+    var stim_drift_direction = 0
+    var stim_drift_start_time = 0
+    var stim_drift_fixed = 0
+    var alpha_multiplier_fixed = 0
+
+    var options_pos = [0, 0, 0, 0, 0, 0]
+    var options_bin = [0, 0, 0, 0, 0, 0]
+    var selected = -1
+
+    var start_stim_index = 0
+    var end_stim_index = 0
+    var stim_index (scope = local; default_value = 0)
+    var option_stim_index (scope = local; default_value = 0)
+    var stim_dist_cum = [0, 0, 0, 0, 0, 0]
+    var num_options = 1
+    var depth_display = 1
+    var selected = -1
+}
+
+group 'Trial variables - Behavior' {
+    var failure = 0
+    var success = 0
+    var ignore = 0
+}
+
+group 'Block variables' {
+    var n_trials_in_block = 0
+}
+
+group 'Experiment variable - Behavior' {
+    var nsuccess = 0
+    var nfailure = 0
+    var nignore = 0
+    var nconsecsuccess = 0
+
+    var pointer_x = 0
+    var pointer_y = 0
+
+}
+
+
+group 'Experiment variables' {
+    var meta_index = 1
+    var subject_id = 0
+    var seq_index = 0
+    var seq_id = 0
+    var seqs = [0]
+    var n_trials = 0
+
+    var use_mouse = 0
+    var testing = 1
+    var use_keyboard = 1
+
+    var sync = -1
+}
+
+group 'Phases' {
+    var fixation = 0
+    var pre_drift = 0
+    var drift = 0
+    var drift_transition = 0
+    var drift_pause = 0
+    var post_drift = 0
+    var pre_choice = 0
+    var choice = 0
+    var feedback = 0
+}
+
+group 'Phase durations' {
+    var pre_drift_dur = 1s
+    var post_drift_dur = 1s
+    var pre_choice_dur = 1s
+    var choice_dur = 3s
+    var feedback_dur = 3s
+    var drift_pause_dur = 1s
+}

@@ -1,28 +1,25 @@
-group 'Python variables' {
-    var py_seq_index = 0
-    var py_seqs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    var py_n_stims = 0
-    var py_stim_paths = []
-}
+%include 'mental-nav-variables'
 
-group 'Sequence variables' {
-    var n_stims = 0
-    var stim_paths = ['', '', '', '', '', '']
-    var n_conditions = 1
-}
+%include 'eye'
+%include 'keyboard'
 
-group 'Block variables' {
-    var n_trials = 0 
-    var trial_id = 0
-}
+%include 'mental-nav-stim'
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////// Parameter update methods
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-group 'Experiment variables' {
-    var meta_index = 1
-    var subject_id = 0
-    var seq_index = 0
-    var seq_id = 0
-    var seqs = [0]
-}
+%define update_trial_params_from_meta ()
+    run_python_string (get_trial_metaparameters())
+    trial_id = py_trial_id
+    start_stim_index = py_start_stim_index
+    end_stim_index = py_end_stim_index
+    py_meta_index = py_meta_index
+    options_bin = py_options_bin
+    options_pos = py_options_pos
+    num_options = py_num_options
+    stim_dist_cum = py_stim_dist_cum
+    stim_drift_direction = py_stim_drift_direction
+%end
 
 %define update_sequence_params_from_meta ()
     run_python_string(get_seq_metaparameters())
@@ -31,16 +28,80 @@ group 'Experiment variables' {
     n_conditions = n_stims * n_stims * 2
 %end
 
-%define get_n_conditions = n_conditions
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////// Transition macros
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
+%define inc_seq_index ()
+    seq_index = seq_index + 1
+%end
+
+%define inc_trial_index ()
+    accept_selections (trial_index)
+%end
+
+%define inc_block_index ()
+    accept_selections (block_index)
+%end
+
+%define inc_n_trials ()
+    n_trials = n_trials + 1
+    n_trials_in_block = n_trials_in_block + 1
+%end
+
+//////////////////////////////////////////////////////////////
+
+%define reset_trials ()
+    reset_selection (trial_index)
+%end
+
+%define reset_blocks ()
+    reset_selection (block_index)
+%end
+
+%define set_vars_new_seq ()
+    nsuccess = 0
+    nfailure = 0
+    nignore = 0
+
+    reset_blocks ()
+    seq_id = seqs[seq_index]
+    update_sequence_params_from_meta ()
+    set_vars_new_block ()
+%end
+
+%define set_vars_new_block ()
+    reset_trials ()
+    n_trials_in_block = 0
+%end
+
+%define set_vars_new_trial ()
+    update_trial_params_from_meta ()
+    stim_drift_fixed = 0
+    selected = -1
+    choice = 0
+    feedback = 0
+    failure = 0
+    success = 0
+    ignore = 0
+%end
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////// Boolean macros
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+% define block_complete =  n_trials_in_block == n_conditions
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////// Selection variables
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 selection trial_index (
     values = 0:1000
-    selection = random_without_replacement
+    selection = sequential_ascending
     advance_on_accept = YES
     autoreset = YES
 )
-*/
 
 selection block_index (
     values = 0:10
@@ -48,6 +109,8 @@ selection block_index (
     advance_on_accept = YES
     autoreset = YES
 )
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 protocol '1. Set subject ID = 1' {
     subject_id = 1
@@ -58,71 +121,331 @@ protocol '2. Load sequences' {
     run_python_string(get_subject_metaparameters())
     seqs = py_seqs
     seq_index = py_seq_index
-    seq_id = seqs[seq_index]
 }
 
-
-var trial_index (scope = local; default_value = 0)
-%define new_block ()
-    // reset_selections (trial_index)
-    accept_selections (block_index)
-%end
-
-%define new_seq ()
-    reset_selection (block_index)
-    seq_index = seq_index + 1
-    update_sequence_params_from_meta ()
-%end
-
-%define for_each_pair ()
-    range_replicator (
-        variable = trial_index
-        from = 0
-        to = get_n_conditions
-        step = 1
-        )
-%end
 protocol '3. Begin experiment' {
     report ('***********BEGIN EXPERIMENT***********')
-    new_seq ()
-    new_block ()
-    block (nsamples = 3 * 100) {
-        report ('***********BEGIN BLOCK $block_index***********')
-        list (
-            selection = random_without_replacement
-            nsamples = n_conditions
-            sampling_method = samples
-        ) {
-            for_each_pair {
-                trial {
-                    task {
-                        state 'Begin trial' {
-                            report ('***********BEGIN TRIAL $trial_index, BLOCK $block_index***********')
-                            wait (2s)
-                            goto ( 'End trial' )
-                        }
-                        state 'End trial' {
-                            report ('***********END TRIAL***********')
+    set_vars_new_seq ()
 
-                            n_trials = n_trials + 1
 
-                            // accept_selections (trial_index)
+    start_io_device (keyboard)
+    start_io_device (eye_tracker)
+    live_queue_stimulus (center_indicator)
+    live_queue_stimulus (center_indicator_fill)
 
-                            if (n_trials == n_conditions) {
-                                performance = rand(0, 1)
-                                if (performance < 0.5) {
-                                    report ('remaining in sequence')
-                                    new_block ()
-                                }
-                                if (performance >= 0.5) {
-                                    report ('moving on to next sequence')
-                                    new_seq ()
-                                }
-                            }
-                            yield ()
-                        }
+    for_each_stim {
+        list {
+	        live_queue_stimulus (img_stims[stim_index])
+	        live_queue_stimulus (mask_stims[stim_index])
+        }
+    }
+
+    live_queue_stimulus (window_mask_left)
+    live_queue_stimulus (window_mask_right)
+
+
+    trial (nsamples = 1000) {
+        sync = 0
+        set_vars_new_trial ()
+
+        report ('***********BEGIN TRIAL id. $trial_id, no. $trial_index, BLOCK $block_index***********')
+
+
+        for_each_option_stim {
+                list {
+                    live_queue_stimulus(option_stims[option_stim_index])
+                }
+            }
+
+        display_option_selectors()
+
+        task {
+            state 'Begin fixation' {
+                fixation = 1
+
+                queue_stimulus (fixation_point)
+
+                update_display ()
+
+                wait (1s)
+
+                simulate_fixation ()
+
+                goto (
+                    target = 'Pre drift'
+                    when = eye_in_window and (not saccade)
+                )
+            }
+
+            state 'Pre drift' {
+                fixation = 0
+                pre_drift = 1
+                sync = 1
+
+                dequeue_stimulus (fixation_point)
+                update_display ()
+
+                wait (pre_drift_dur)
+
+                 goto (
+                    target = 'Begin drift'
+                 )
+            }
+
+            state 'Begin drift' {
+                report ("*********BEGIN DRIFT**********")
+
+                pre_drift = 0
+                drift = 1
+                sync = 2
+
+                goto ('Drift transition')
+            }
+
+            state 'Drift transition' {
+                report ("***********DRIFT TRANSITION***********")
+
+                drift_pause = 0
+                drift_transition = 1
+                sync = 3
+
+                stim_drift_start_time = next_frame_time()
+
+                goto (
+                    target = 'Drift pause'
+                    when = abs(stim_drift_transition) >= (stim_drift_transition_end - margin)
+                )
+            }
+
+            state 'Drift pause' {
+                report ("***********DRIFT PAUSE***********")
+                stim_drift_fixed = stim_drift_fixed + stim_drift_transition
+
+                drift_transition = 0
+                drift_pause = 1
+                sync = 4
+
+                /*
+                if (rand_drift_pause_dur) {
+                    drift_pause_dur = rand(0, 0.5) + 0.5
+                }
+                */
+
+                wait (drift_pause_dur)
+
+                goto (
+                    target = 'Post drift'
+                    when = abs(stim_drift_fixed) >= (stim_drift_end - margin)
+                )
+                goto (
+                    target = 'Drift transition'
+                )
+            }
+
+            state 'Post drift' {
+                report ("*********POST DRIFT**********")
+
+                alpha_multiplier_fixed = alpha_multiplier_drift
+
+                drift = 0
+                post_drift = 1
+                sync = 3
+
+                wait (post_drift_dur)
+
+                goto  ('Pre choice')
+            }
+
+             state 'Pre choice' {
+                report ("*********PRE CHOICE**********")
+
+                post_drift = 0
+                pre_choice = 1
+                sync = 4
+
+                wait (pre_choice_dur)
+
+                goto ('Choice')
+            }
+            state 'Choice' {
+                report ("*********CHOICE**********")
+
+                pre_choice = 0
+                choice = 1
+                sync = 5
+
+
+                start_timer (
+                    timer = choice_timer
+                    duration = choice_dur
+                )
+
+
+                goto (
+                    target = 'Selected 0'
+                    when = options_bin[0] * (use_keyboard * keyboard_selected (0) )
+                )
+
+                goto (
+                    target = 'Selected 1'
+                    when = options_bin[1] * (use_keyboard * keyboard_selected (1) )
+                )
+                goto (
+                    target = 'Selected 2'
+                    when = options_bin[2] * (use_keyboard * keyboard_selected (2) )
+                )
+                goto (
+                    target = 'Selected 3'
+                    when = options_bin[3] * (use_keyboard * keyboard_selected (3) )
+                )
+                goto (
+                    target = 'Selected 4'
+                    when = options_bin[4] * (use_keyboard * keyboard_selected (4) )
+                )
+                goto (
+                    target = 'Selected 5'
+                    when = options_bin[5] * (use_keyboard * keyboard_selected (5) )
+                )
+                goto (
+                    target = 'Ignore'
+                    when = timer_expired(choice_timer)
+                )
+            }
+
+            state 'Selected 0' {
+                 report ("************SELECTED 0************")
+                 selected = 0
+                 goto (
+                    target = 'Success'
+                    when = end_stim_index == 0
+                )
+                goto (
+                    target = 'Failure'
+                    when = end_stim_index != 0
+                )
+            }
+
+            state 'Selected 1' {
+                report ("************SELECTED 1************")
+                selected = 1
+                goto (
+                    target = 'Success'
+                    when = end_stim_index == 1
+                )
+                goto (
+                    target = 'Failure'
+                    when = end_stim_index != 1
+                )
+            }
+            state 'Selected 2' {
+                report ("************SELECTED 2************")
+                selected = 2
+                goto (
+                    target = 'Success'
+                    when = end_stim_index == 2
+                )
+                goto (
+                    target = 'Failure'
+                    when = end_stim_index != 2
+                )
+            }
+            state 'Selected 3' {
+                report ("************SELECTED 3************")
+                selected = 3
+                goto (
+                    target = 'Success'
+                    when = end_stim_index == 3
+                )
+                goto (
+                    target = 'Failure'
+                    when = end_stim_index != 3
+                )
+            }
+            state 'Selected 4' {
+                report ("************SELECTED 4************")
+                selected = 4
+                goto (
+                    target = 'Success'
+                    when = end_stim_index == 4
+                )
+                goto (
+                    target = 'Failure'
+                    when = end_stim_index != 4
+                )
+            }
+            state 'Selected 5' {
+                report ("************SELECTED 5************")
+                selected = 5
+                goto (
+                    target = 'Success'
+                    when = end_stim_index == 5
+                )
+                goto (
+                    target = 'Failure'
+                    when = end_stim_index != 5
+                )
+            }
+            state 'Success' {
+                report ("*********SUCCESS**********")
+
+                nsuccess = nsuccess + 1
+                nconsecsuccess = nconsecsuccess + 1
+                success = 1
+
+                choice = 0
+                feedback = 1
+                sync = 6
+
+                wait (feedback_dur)
+                goto ('End trial')
+            }
+            state 'Failure' {
+                report ("*********FAILURE**********")
+
+                failure = 1
+                nfailure = nfailure + 1
+                nconsecsuccess = 0
+
+                choice = 0
+                feedback = 1
+                sync = 6
+
+                wait (feedback_dur)
+                goto ('End trial')
+            }
+            state 'Ignore' {
+                ignore = 1
+                nignore = nignore + 1
+                nconsecsuccess = 0
+
+                choice = 0
+                feedback = 1
+                sync = 6
+
+                wait (feedback_dur)
+                goto ('End trial')
+            }
+            state 'End trial' {
+                report ('***********END TRIAL***********')
+
+                inc_n_trials ()
+                inc_trial_index ()
+
+                if (block_complete) {
+
+                    if ((nsuccess / n_conditions) < 0.5) {
+                        report ('remaining in sequence')
+                        inc_block_index ()
+                        set_vars_new_block ()
+                    }
+
+                    if ((nsuccess / n_conditions) >= 0.5) {
+                        report ('moving on to next sequence')
+                        inc_seq_index ()
+                        set_vars_new_seq ()
                     }
                 }
+                yield ()
             }
         }
     }
