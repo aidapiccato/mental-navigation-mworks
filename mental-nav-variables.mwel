@@ -7,17 +7,21 @@ group 'Python variables' {
     var py_start_stim_index = 0
     var py_end_stim_index = 0
     var py_trial_id = 0
+    var py_trial_meta_id = 0
     var py_stim_drift_direction = 0
     var py_options_pos = []
     var py_num_options = 0
     var py_options_bin = []
     var py_stim_dist_cum = []
+    var py_stim_pos = []
+    var py_stim_bin = []
 }
 var n_stims = 2
 
 group 'Sequence variables' {
-
-    var stim_paths = ['', '', '', '', '', '']
+    var stim_pos = [0, 0, 0, 0, 0, 0, 0, 0]
+    var stim_bin = [0, 0, 0, 0, 0, 0, 0, 0]
+    var stim_dist_cum = []
     var n_conditions = 1
 }
 
@@ -27,23 +31,23 @@ group 'Display variables' {
 
 group 'Trial variables' {
     var trial_id = 0
-
+    var trial_meta_id = 0
     var stim_drift_speed = 8
     var stim_drift_direction = 0
     var stim_drift_start_time = 0
     var stim_drift_fixed = 0
     var alpha_multiplier_fixed = 0
 
-    var options_pos = [0, 0, 0, 0, 0, 0]
-    var options_bin = [0, 0, 0, 0, 0, 0]
+    var options_pos = [0, 0, 0, 0, 0, 0, 0, 0]
+    var options_bin = [0, 0, 0, 0, 0, 0, 0, 0]
     var selected = -1
 
     var start_stim_index = 0
     var end_stim_index = 0
     var stim_index (scope = local; default_value = 0)
     var option_stim_index (scope = local; default_value = 0)
-    var stim_dist_cum = [0, 0, 0, 0, 0, 0]
-    var num_options = 1
+    var stim_dist_cum = [0, 0, 0, 0, 0, 0, 0, 0]
+    var num_options = 2
     var depth_display = 1
     var selected = -1
 }
@@ -79,7 +83,7 @@ group 'Experiment variables' {
     var n_trials = 0
 
     var use_mouse = 0
-    var testing = 1
+    var testing = 0
     var use_keyboard = 1
 
     var sync = -1

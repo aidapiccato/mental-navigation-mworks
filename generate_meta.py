@@ -6,11 +6,73 @@ import os
 MAX_NUM_STIMS = 6
 MIN_NUM_STIMS = 2
 N_SEQ_LEN_REPEATS = 2
+N_DISTINCT_STIMS = 8
 IMAGE_PATH = '/images/objects1'
 USERNAME = 'aidapiccato'
 #USERNAME = 'apiccato'
 dir_path = "/Users/%s/PycharmProjects/mental-navigation-mworks/pickle_meta" % USERNAME
 
+meta_fn_tag = 1
+
+def generate_trial_meta():
+    a = []
+    trial_meta_id = 0
+    for n_stims in np.arange(MIN_NUM_STIMS, MAX_NUM_STIMS):
+        d = {
+            'stim_drift_direction': [],
+            'trial_meta_id': [],
+            'start_stim_index': [],
+            'end_stim_index': [],
+        }
+        start_idx = np.repeat(np.linspace(0, n_stims - 1, num=n_stims), n_stims * 2)
+        end_idx = np.tile(np.linspace(0, n_stims - 1, num=n_stims), n_stims  * 2)
+        n_conditions = n_stims**2 * 2
+        for trial_id in np.arange(n_conditions):
+            d['trial_meta_id'].append(trial_meta_id)
+            d['stim_drift_direction'].append(1 if trial_id < (n_conditions / 2) else -1)
+            d['start_stim_index'].append(start_idx[trial_id])
+            d['end_stim_index'].append(end_idx[trial_id])
+            trial_meta_id += 1
+        a.append(d)
+    fn = "%s/trials.pkl" % (dir_path)
+    with open(fn, 'wb') as f:
+        pickle.dump(a, f)
+
+
+def generate_subject_meta(subject_id):
+    subject = {
+        'n_stims': [],
+        'stim_bin': [],
+        'stim_pos': [],
+        'stim_dist_cum': [],
+        'seq_index': 0
+    }
+
+    seq_lens = np.repeat(np.arange(MIN_NUM_STIMS, MAX_NUM_STIMS + 1), N_SEQ_LEN_REPEATS)
+
+    np.random.shuffle(seq_lens)
+
+    for seq_len in seq_lens:
+        subject['n_stims'].append(seq_len)
+        stims = np.random.choice(np.arange(N_DISTINCT_STIMS), seq_len, replace=False)
+        stim_bin = np.zeros(N_DISTINCT_STIMS)
+        stim_pos = np.repeat([-1], N_DISTINCT_STIMS)
+        stim_bin[stims] = 1
+        stim_pos[stims] = np.random.permutation(np.arange(seq_len))
+        subject['stim_bin'].append(stim_bin)
+        subject['stim_pos'].append(stim_pos)
+        stim_dist_cum = np.zeros((N_DISTINCT_STIMS))
+        stim_dist_cum[stims] = np.arange(1, seq_len+1)
+        subject['stim_dist_cum'].append(stim_dist_cum)
+
+    fn = "%s/subject_%s.pkl" % (dir_path, subject_id)
+
+    with open(fn, 'wb') as f:
+        pickle.dump(subject, f)
+
+
+
+########################################################################################################################
 def length_to_ids(l, n):
     '''
     Returns list of n seq_ids, each corr. to sequences of length l
@@ -75,7 +137,7 @@ def generate_meta(
         ):
 
     '''
-    Generates meta file with sequences, num_images_repeats of each length in the range (min_num_images). Each
+    Generates meta file with sequences, num_images_repeats of each length in the range (min_num_images).
     :param min_num_stims:
     :param max_num_stims:
     :param image_folder_path:
@@ -84,7 +146,8 @@ def generate_meta(
 
     seq_meta = {
         'n_stims': [],
-        'stim_paths': [],
+        'stims_bin': [],
+        'stims_pos': [],
         'seq_id': []
     }
 
@@ -111,56 +174,60 @@ def generate_meta(
 
     return seq_meta
 
-def generate_trial_meta(num_stims, max_dist, prob, num_options, fixed_dist):
-    '''
-    :param n_condition_repeats: Number of times a pair is repeated (each time with different inter image dist)
-    :param n_stims: Number of distinct stimuli
-    :param max_dist: Maximum distance in units of padding between stimuli
-    :param prob: Probability for geometric distribution
-    :return: Nothing.
-    '''
-    trial_meta = {
-        'stim_drift_direction': [],
-        'stim_dist_cum': [],
-        'trial_meta_index': [],
-        'start_stim_index': [],
-        'end_stim_index': [],
-        'options_bin': [],
-        'options_pos': [],
-        'num_options': []
-    }
-    start_idx = np.repeat(np.linspace(0, num_stims - 1, num=num_stims), num_stims*2)
-    end_idx = np.tile(np.linspace(0, num_stims - 1, num=num_stims), num_stims*2)
-    num_pairs = num_stims**2 * 2
-    for pair_index in range(num_pairs):
-        stim_drift_direction = 1 if pair_index < (num_pairs / 2) else -1
-        trial_meta['start_stim_index'].append(start_idx[pair_index])
-        trial_meta['end_stim_index'].append(end_idx[pair_index])
-        trial_meta['trial_meta_index'].append(pair_index)
-        trial_meta['stim_drift_direction'].append(stim_drift_direction)
-        end_stim_index = end_idx[pair_index]
-        other = np.arange(num_stims)
-        other = other[np.where(other != end_stim_index)]
-        num_options = np.random.choice([2, 4, num_stims]) if num_options is None else num_options
-        options_ixs = np.asarray(np.concatenate(([end_stim_index],
-                                                 np.random.choice(other, num_options - 1, replace=False))), dtype=int)
-        options_pos, options_bin = np.zeros(num_stims), np.zeros(num_stims)
-        options_bin[options_ixs] = 1
-        options_pos[options_ixs] = np.random.permutation(np.arange(num_options))
-        trial_meta['num_options'].append(num_options)
-        options_pos = np.concatenate((options_pos, np.zeros(MAX_NUM_STIMS - num_stims)))
-        options_bin = np.concatenate((options_bin, np.zeros(MAX_NUM_STIMS - num_stims)))
-        trial_meta['options_pos'].append(options_pos)
-        trial_meta['options_bin'].append(options_bin)
-        if fixed_dist is None:
-            stim_dist = np.random.geometric(prob, size=num_stims)
-            stim_dist = np.clip(stim_dist, 1, max_dist)
-            stim_dist_cum = np.cumsum(stim_dist)
-            stim_dist_cum = np.concatenate((stim_dist_cum, np.zeros(MAX_NUM_STIMS - num_stims)))
-            trial_meta['stim_dist_cum'].append(stim_dist_cum)
-        else:
-            stim_dist = np.repeat([fixed_dist], num_stims)
-            stim_dist_cum = np.cumsum(stim_dist)
-            stim_dist_cum = np.concatenate((stim_dist_cum, np.zeros(MAX_NUM_STIMS - num_stims)))
-            trial_meta['stim_dist_cum'].append(stim_dist_cum)
-    return trial_meta
+# def generate_trial_meta(num_stims, max_dist, prob, num_options, fixed_dist):
+#     '''
+#     :param n_condition_repeats: Number of times a pair is repeated (each time with different inter image dist)
+#     :param n_stims: Number of distinct stimuli
+#     :param max_dist: Maximum distance in units of padding between stimuli
+#     :param prob: Probability for geometric distribution
+#     :return: Nothing.
+#     '''
+#     trial_meta = {
+#         'stim_drift_direction': [],
+#         'stim_dist_cum': [],
+#         'trial_meta_index': [],
+#         'start_stim_index': [],
+#         'end_stim_index': [],
+#         'options_bin': [],
+#         'options_pos': [],
+#         'num_options': [],
+#         'stims_bin': [],
+#         'stims_pos': [],
+#     }
+#
+#     start_idx = np.repeat(np.linspace(0, num_stims - 1, num=num_stims), num_stims*2)
+#     end_idx = np.tile(np.linspace(0, num_stims - 1, num=num_stims), num_stims*2)
+#     num_pairs = num_stims**2 * 2
+#     for pair_index in range(num_pairs):
+#         stim_drift_direction = 1 if pair_index < (num_pairs / 2) else -1
+#
+#         trial_meta['start_stim_index'].append(start_idx[pair_index])
+#         trial_meta['end_stim_index'].append(end_idx[pair_index])
+#         trial_meta['trial_meta_index'].append(pair_index)
+#         trial_meta['stim_drift_direction'].append(stim_drift_direction)
+#         end_stim_index = end_idx[pair_index]
+#         other = np.arange(num_stims)
+#         other = other[np.where(other != end_stim_index)]
+#         num_options = np.random.choice([2, 4, num_stims]) if num_options is None else num_options
+#         options_ixs = np.asarray(np.concatenate(([end_stim_index],
+#                                                  np.random.choice(other, num_options - 1, replace=False))), dtype=int)
+#         options_pos, options_bin = np.zeros(num_stims), np.zeros(num_stims)
+#         options_bin[options_ixs] = 1
+#         options_pos[options_ixs] = np.random.permutation(np.arange(num_options))
+#         trial_meta['num_options'].append(num_options)
+#         options_pos = np.concatenate((options_pos, np.zeros(MAX_NUM_STIMS - num_stims)))
+#         options_bin = np.concatenate((options_bin, np.zeros(MAX_NUM_STIMS - num_stims)))
+#         trial_meta['options_pos'].append(options_pos)
+#         trial_meta['options_bin'].append(options_bin)
+#         if fixed_dist is None:
+#             stim_dist = np.random.geometric(prob, size=num_stims)
+#             stim_dist = np.clip(stim_dist, 1, max_dist)
+#             stim_dist_cum = np.cumsum(stim_dist)
+#             stim_dist_cum = np.concatenate((stim_dist_cum, np.zeros(MAX_NUM_STIMS - num_stims)))
+#             trial_meta['stim_dist_cum'].append(stim_dist_cum)
+#         else:
+#             stim_dist = np.repeat([fixed_dist], num_stims)
+#             stim_dist_cum = np.cumsum(stim_dist)
+#             stim_dist_cum = np.concatenate((stim_dist_cum, np.zeros(MAX_NUM_STIMS - num_stims)))
+#             trial_meta['stim_dist_cum'].append(stim_dist_cum)
+#     return trial_meta

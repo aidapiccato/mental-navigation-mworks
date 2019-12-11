@@ -10,21 +10,20 @@
 
 %define update_trial_params_from_meta ()
     run_python_string (get_trial_metaparameters())
-    trial_id = py_trial_id
+    trial_meta_id = py_trial_meta_id
     start_stim_index = py_start_stim_index
     end_stim_index = py_end_stim_index
-    py_meta_index = py_meta_index
     options_bin = py_options_bin
     options_pos = py_options_pos
-    num_options = py_num_options
-    stim_dist_cum = py_stim_dist_cum
     stim_drift_direction = py_stim_drift_direction
 %end
 
 %define update_sequence_params_from_meta ()
     run_python_string(get_seq_metaparameters())
     n_stims = py_n_stims
-    stim_paths = py_stim_paths
+    stim_pos = py_stim_pos
+    stim_bin = py_stim_bin
+    stim_dist_cum = py_stim_dist_cum
     n_conditions = n_stims * n_stims * 2
 %end
 
@@ -116,10 +115,9 @@ protocol '1. Set subject ID = 1' {
     subject_id = 1
 }
 
-protocol '2. Load sequences' {
+protocol '2. Load sequence index' {
     run_python_file('mental-nav_utils.py')
-    run_python_string(get_subject_metaparameters())
-    seqs = py_seqs
+    run_python_string(get_seq_index())
     seq_index = py_seq_index
 }
 
@@ -161,6 +159,7 @@ protocol '3. Begin experiment' {
 
         task {
             state 'Begin fixation' {
+                report ('*********BEGIN FIXATION**********')
                 fixation = 1
 
                 queue_stimulus (fixation_point)

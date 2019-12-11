@@ -11,7 +11,7 @@ stimulus_display (
 
 %define mask_width = display_bounds('right')
 
-%define num_stims = 6
+%define num_stims = 8
 
 
 group 'Stimulus display variables' {
@@ -113,13 +113,12 @@ group 'Python parameters' {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Visibility macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var stim_index_mapper = [-1, -1, 2, -1, -1, 1, 0, -1]
-stim_dist_cum = [0, 0, 3, 0, 0, 2, 1, 0]
 %define view_fixation_point = fixation
 %define view_center_indicator = pre_drift or drift or post_drift or pre_choice or choice or feedback
 %define view_window_mask = not choice
-%define view_stims = stim_index_mapper[${stim_index}] != -1 and ((pre_drift and ${stim_index} == start_stim_index) or (drift and not testing) or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index))
-%define view_stim_masks = (pre_drift and ${stim_index} != start_stim_index) or drift or post_drift or ((pre_choice or choice or feedback) and ${stim_index} == end_stim_index)
+%define stim_index_seq = stim_pos[${stim_index}]
+%define view_stims = stim_index_seq != -1 and ((pre_drift and stim_index_seq == start_stim_index) or (drift and not testing) or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index))
+%define view_stim_masks = stim_index_seq != -1 and (pre_drift and stim_index_seq != start_stim_index) or drift or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index)
 %define view_option_stims = ((pre_choice or choice) and (options_bin[${option_stim_index}])) or (feedback and selected == ${option_stim_index})
 %define view_option_selectors (index) (choice or (feedback and selected == index))
 
@@ -135,9 +134,7 @@ stim_dist_cum = [0, 0, 3, 0, 0, 2, 1, 0]
 ////// Stimulus drift macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-%define cum_dist = stim_dist_cum[n_stims - 1]
-
-%define stim_offset = -start_stim_index * stim_size - stim_dist_cum[start_stim_index] * stim_padding
+%define stim_offset = -start_stim_index * stim_size - (start_stim_index) * stim_padding
 
 %define cycle = end_stim_index == start_stim_index
 
@@ -148,20 +145,20 @@ stim_dist_cum = [0, 0, 3, 0, 0, 2, 1, 0]
 %define stim_drift_transition_end = stim_padding + stim_size
 
 %define stim_drift_symb_dist = (1 - cycle) * abs(wrap * n_stims - abs(start_stim_index - end_stim_index)) + (cycle) * n_stims
-%define stim_drift_spat_dist = (1 - cycle) * abs(wrap * cum_dist + stim_drift_direction * (stim_dist_cum[start_stim_index] - stim_dist_cum[end_stim_index])) + (cycle) * cum_dist
+%define stim_drift_spat_dist = (1 - cycle) * abs(wrap * n_stims + stim_drift_direction * (start_stim_index - end_stim_index)) + (cycle) * n_stims
 
 %define stim_drift_dur = (next_frame_time() - stim_drift_start_time) / 1e6
 %define stim_drift = drift_transition * stim_drift_transition + stim_drift_fixed
 
 %define stim_drift_end = (stim_drift_symb_dist * stim_size) + (stim_drift_spat_dist * stim_padding)
 
-%define stim_seq_length = (n_stims) * (stim_size) + cum_dist * stim_padding
+%define stim_seq_length = (n_stims) * (stim_size) + n_stims * stim_padding
 
 %define stim_wrapped_right = ((stim_position_x < (display_bounds('left')  - stim_size/2)))
 %define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
 
 
-%define stim_position_x = stim_offset + stim_index_mapper[${stim_index}] * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + drift * stim_drift + (1 - drift) * stim_drift_fixed
+%define stim_position_x = stim_offset + stim_pos[${stim_index}] * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + drift * stim_drift + (1 - drift) * stim_drift_fixed
 %define stim_position_x_wrapped = (stim_wrapped_right + -1 * stim_wrapped_left) * stim_seq_length + stim_position_x
 
 %define option_stim_position_x = option_distance * cos(2 * pi() / num_options * options_pos[${option_stim_index}])
