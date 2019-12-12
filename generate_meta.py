@@ -8,8 +8,8 @@ MIN_NUM_STIMS = 2
 N_SEQ_LEN_REPEATS = 2
 N_DISTINCT_STIMS = 8
 IMAGE_PATH = '/images/objects1'
-USERNAME = 'aidapiccato'
-#USERNAME = 'apiccato'
+# USERNAME = 'aidapiccato'
+USERNAME = 'apiccato'
 dir_path = "/Users/%s/PycharmProjects/mental-navigation-mworks/pickle_meta" % USERNAME
 
 meta_fn_tag = 1
@@ -61,8 +61,7 @@ def generate_subject_meta(subject_id):
         stim_pos[stims] = np.random.permutation(np.arange(seq_len))
         subject['stim_bin'].append(stim_bin)
         subject['stim_pos'].append(stim_pos)
-        stim_dist_cum = np.zeros((N_DISTINCT_STIMS))
-        stim_dist_cum[stims] = np.arange(1, seq_len+1)
+        stim_dist_cum = stim_pos + 1
         subject['stim_dist_cum'].append(stim_dist_cum)
 
     fn = "%s/subject_%s.pkl" % (dir_path, subject_id)

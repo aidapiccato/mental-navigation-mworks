@@ -20,7 +20,7 @@ group 'Stimulus display variables' {
     var bb = 0.5
 
     var stim_size = 7
-    var stim_padding = 3
+    var stim_padding = 1
     var stim_position_y = 1
 
     var option_distance = 8
@@ -32,58 +32,6 @@ group 'Stimulus display variables' {
     var nconsecsucc_increment = 3
 
     var num_visible_stims = 1
-}
-
-group 'Stimulus drift variables' {
-    var stim_drift_speed = 8
-    var stim_drift_direction = 0
-    var stim_drift_start_time = 0
-    var stim_drift_fixed = 0
-    var alpha_multiplier_fixed = 0
-    var margin = 10e-2
-}
-
-group 'Phase durations' {
-    var pre_drift_dur = 1s
-    var post_drift_dur = 1s
-    var pre_choice_dur = 1s
-    var choice_dur = 3s
-    var feedback_dur = 3s
-    var drift_pause_dur = 1s
-}
-
-group 'Phases' {
-    var fixation = 0
-    var pre_drift = 0
-    var drift = 0
-    var drift_transition = 0
-    var drift_pause = 0
-    var post_drift = 0
-    var pre_choice = 0
-    var choice = 0
-    var feedback = 0
-}
-
-group 'Behavior' {
-    var nsuccess = 0
-    var nfailure = 0
-    var nignore = 0
-    var sel_index = 0
-    var nconsecsuccess = 0
-    var failure = 0
-    var success = 0
-    var ignore = 0
-}
-group 'Python parameters' {
-    var py_start_stim_index = 0
-    var py_end_stim_index = 0
-    var py_pair_index = 0
-    var py_meta_index = 0
-    var py_stim_drift_direction = 0
-    var py_options_pos = []
-    var py_num_options = 0
-    var py_options_bin = []
-    var py_stim_dist_cum = []
 }
 
 
@@ -115,10 +63,14 @@ group 'Python parameters' {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 %define view_fixation_point = fixation
 %define view_center_indicator = pre_drift or drift or post_drift or pre_choice or choice or feedback
-%define view_window_mask = not choice
+%define view_window_mask = 0 // not choice
+
+
 %define stim_index_seq = stim_pos[${stim_index}]
-%define view_stims = stim_index_seq != -1 and ((pre_drift and stim_index_seq == start_stim_index) or (drift and not testing) or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index))
-%define view_stim_masks = stim_index_seq != -1 and (pre_drift and stim_index_seq != start_stim_index) or drift or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index)
+%define stim_index_vis = stim_bin[${stim_index}]
+
+%define view_stims = stim_index_vis and ((pre_drift and stim_index_seq == start_stim_index) or (drift and not testing) or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index))
+%define view_stim_masks = stim_index_vis and (pre_drift and stim_index_seq != start_stim_index) or drift or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index)
 %define view_option_stims = ((pre_choice or choice) and (options_bin[${option_stim_index}])) or (feedback and selected == ${option_stim_index})
 %define view_option_selectors (index) (choice or (feedback and selected == index))
 
@@ -134,7 +86,7 @@ group 'Python parameters' {
 ////// Stimulus drift macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-%define stim_offset = -start_stim_index * stim_size - (start_stim_index) * stim_padding
+%define stim_offset = -(start_stim_index) * stim_size - (start_stim_index + 1) * stim_padding
 
 %define cycle = end_stim_index == start_stim_index
 
@@ -145,20 +97,19 @@ group 'Python parameters' {
 %define stim_drift_transition_end = stim_padding + stim_size
 
 %define stim_drift_symb_dist = (1 - cycle) * abs(wrap * n_stims - abs(start_stim_index - end_stim_index)) + (cycle) * n_stims
-%define stim_drift_spat_dist = (1 - cycle) * abs(wrap * n_stims + stim_drift_direction * (start_stim_index - end_stim_index)) + (cycle) * n_stims
+%define stim_drift_spat_dist = (1 - cycle) * abs(wrap * n_stims + stim_drift_direction * (start_stim_index - end_stim_index)) + (cycle) * (n_stims + 1)
 
 %define stim_drift_dur = (next_frame_time() - stim_drift_start_time) / 1e6
 %define stim_drift = drift_transition * stim_drift_transition + stim_drift_fixed
 
 %define stim_drift_end = (stim_drift_symb_dist * stim_size) + (stim_drift_spat_dist * stim_padding)
 
-%define stim_seq_length = (n_stims) * (stim_size) + n_stims * stim_padding
+%define stim_seq_length = (n_stims) * (stim_size) + (n_stims + 1) * stim_padding
 
-%define stim_wrapped_right = ((stim_position_x < (display_bounds('left')  - stim_size/2)))
-%define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') + stim_size/2)))
+%define stim_wrapped_right = ((stim_position_x < (display_bounds('left') + stim_size)))
+%define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') - stim_size)))
 
-
-%define stim_position_x = stim_offset + stim_pos[${stim_index}] * (stim_size) + stim_dist_cum[${stim_index}] * stim_padding + drift * stim_drift + (1 - drift) * stim_drift_fixed
+%define stim_position_x = stim_offset + stim_index_seq * (stim_size) + (stim_index_seq + 1) * stim_padding + drift * stim_drift + (1 - drift) * stim_drift_fixed
 %define stim_position_x_wrapped = (stim_wrapped_right + -1 * stim_wrapped_left) * stim_seq_length + stim_position_x
 
 %define option_stim_position_x = option_distance * cos(2 * pi() / num_options * options_pos[${option_stim_index}])
@@ -167,7 +118,7 @@ group 'Python parameters' {
 %define option_stim_selector_position_x (index) option_selector_distance * cos(2 * pi() / num_options * options_pos[index])
 %define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * options_pos[index])
 
-%define alpha_multiplier_drift = (1 - testing) * min(max(alpha_m * stim_drift_dur, 0), 1) + testing
+%define alpha_multiplier_drift = 0// (1 - testing) * min(max(alpha_m * stim_drift_dur, 0), 1) + testing
 
 %define keyboard_selected (index) options_pos[index] == 0 and l_pressed or options_pos[index] == 1 and a_pressed
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -225,7 +176,7 @@ stimulus_group mask_stims {
 stimulus_group option_stims {
     for_each_option_stim {
         image_file 'img_option_stim_${option_stim_index}' (
-            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${option_stim_index}.jpg"
+            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${option_stim_index}.jpg"
             x_size = option_stim_size
             x_position = option_stim_position_x
             y_position = option_stim_position_y
@@ -237,7 +188,7 @@ stimulus_group option_stims {
 stimulus_group img_stims {
     for_each_stim {
         image_file 'img_stim_${stim_index}' (
-            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${stim_index}.jpg"
+            path = "/Users/apiccato/PyCharmProjects/mental-navigation-mworks/images/objects1/${stim_index}.jpg"
             x_size = stim_size
             x_position = stim_position_x_wrapped
 	        y_position = 0

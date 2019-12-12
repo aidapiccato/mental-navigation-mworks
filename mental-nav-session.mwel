@@ -15,6 +15,7 @@
     end_stim_index = py_end_stim_index
     options_bin = py_options_bin
     options_pos = py_options_pos
+    trial_id = py_trial_id
     stim_drift_direction = py_stim_drift_direction
 %end
 

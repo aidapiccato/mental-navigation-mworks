@@ -12,7 +12,7 @@ group 'Python variables' {
     var py_options_pos = []
     var py_num_options = 0
     var py_options_bin = []
-    var py_stim_dist_cum = []
+    var py_stim_dist_cum = [0, 0,0, 0, 0, 0,0,0]
     var py_stim_pos = []
     var py_stim_bin = []
 }
@@ -21,7 +21,7 @@ var n_stims = 2
 group 'Sequence variables' {
     var stim_pos = [0, 0, 0, 0, 0, 0, 0, 0]
     var stim_bin = [0, 0, 0, 0, 0, 0, 0, 0]
-    var stim_dist_cum = []
+    var stim_dist_cum = [0, 0, 0, 0, 0, 0, 0, 0]
     var n_conditions = 1
 }
 
@@ -46,10 +46,8 @@ group 'Trial variables' {
     var end_stim_index = 0
     var stim_index (scope = local; default_value = 0)
     var option_stim_index (scope = local; default_value = 0)
-    var stim_dist_cum = [0, 0, 0, 0, 0, 0, 0, 0]
     var num_options = 2
     var depth_display = 1
-    var selected = -1
 }
 
 group 'Trial variables - Behavior' {

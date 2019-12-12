@@ -2,8 +2,8 @@ import pickle as pk
 import numpy as np
 N_DISTINCT_STIMS = 8
 N_OPTIONS = 2
-# username = 'apiccato'
-username = 'aidapiccato'
+username = 'apiccato'
+# username = 'aidapiccato'
 dir_path = "/Users/%s/PycharmProjects/mental-navigation-mworks/pickle_meta" % username
 
 meta_fn_tag = getvar('subject_id')
