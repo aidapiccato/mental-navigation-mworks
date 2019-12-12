@@ -2,7 +2,7 @@
     iodevice/usbhid_generic (
         usage_page = 1
         usage = 6
-        preferred_location_id = 2002375684
+        preferred_location_id = 2152726528
         )
 %end
 

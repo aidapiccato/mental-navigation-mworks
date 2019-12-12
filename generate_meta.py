@@ -8,8 +8,8 @@ MIN_NUM_STIMS = 2
 N_SEQ_LEN_REPEATS = 2
 N_DISTINCT_STIMS = 8
 IMAGE_PATH = '/images/objects1'
-# USERNAME = 'aidapiccato'
-USERNAME = 'apiccato'
+USERNAME = 'aidapiccato'
+# USERNAME = 'apiccato'
 dir_path = "/Users/%s/PycharmProjects/mental-navigation-mworks/pickle_meta" % USERNAME
 
 meta_fn_tag = 1
