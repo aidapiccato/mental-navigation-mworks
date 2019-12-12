@@ -13,7 +13,6 @@ stimulus_display (
 
 %define num_stims = 8
 
-
 group 'Stimulus display variables' {
     var br = 0.5
     var bg = 0.5
@@ -63,16 +62,20 @@ group 'Stimulus display variables' {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 %define view_fixation_point = fixation
 %define view_center_indicator = pre_drift or drift or post_drift or pre_choice or choice or feedback
-%define view_window_mask = 0 // not choice
+%define view_window_mask = not choice
 
 
 %define stim_index_seq = stim_pos[${stim_index}]
 %define stim_index_vis = stim_bin[${stim_index}]
 
+%define option_stim_index_vis = options_bin[${option_stim_index}]
+
 %define view_stims = stim_index_vis and ((pre_drift and stim_index_seq == start_stim_index) or (drift and not testing) or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index))
 %define view_stim_masks = stim_index_vis and (pre_drift and stim_index_seq != start_stim_index) or drift or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index)
-%define view_option_stims = ((pre_choice or choice) and (options_bin[${option_stim_index}])) or (feedback and selected == ${option_stim_index})
-%define view_option_selectors (index) (choice or (feedback and selected == index))
+
+%define view_option_stims = (option_stim_index_vis) and ((pre_choice or choice) or (feedback and selected == stim_pos[${option_stim_index}]))
+%define view_option_selector_0 = (choice or (feedback and selected_0))
+%define view_option_selector_1 = (choice or (feedback and selected_1))
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Color macros
@@ -97,7 +100,7 @@ group 'Stimulus display variables' {
 %define stim_drift_transition_end = stim_padding + stim_size
 
 %define stim_drift_symb_dist = (1 - cycle) * abs(wrap * n_stims - abs(start_stim_index - end_stim_index)) + (cycle) * n_stims
-%define stim_drift_spat_dist = (1 - cycle) * abs(wrap * n_stims + stim_drift_direction * (start_stim_index - end_stim_index)) + (cycle) * (n_stims + 1)
+%define stim_drift_spat_dist = (1 - cycle) * abs(wrap * n_stims + stim_drift_direction * (start_stim_index - end_stim_index)) + (cycle) * (n_stims)
 
 %define stim_drift_dur = (next_frame_time() - stim_drift_start_time) / 1e6
 %define stim_drift = drift_transition * stim_drift_transition + stim_drift_fixed
@@ -115,12 +118,13 @@ group 'Stimulus display variables' {
 %define option_stim_position_x = option_distance * cos(2 * pi() / num_options * options_pos[${option_stim_index}])
 %define option_stim_position_y = option_distance * sin(2 * pi() / num_options * options_pos[${option_stim_index}])
 
-%define option_stim_selector_position_x (index) option_selector_distance * cos(2 * pi() / num_options * options_pos[index])
-%define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * options_pos[index])
+%define option_stim_selector_position_x (index) option_selector_distance * cos(2 * pi() / num_options * index)
+%define option_stim_selector_position_y (index) option_selector_distance * sin(2 * pi() / num_options * index)
 
-%define alpha_multiplier_drift = 0// (1 - testing) * min(max(alpha_m * stim_drift_dur, 0), 1) + testing
+%define alpha_multiplier_drift = (1 - testing) * min(max(alpha_m * stim_drift_dur, 0), 1) + testing
 
-%define keyboard_selected (index) options_pos[index] == 0 and l_pressed or options_pos[index] == 1 and a_pressed
+%define keyboard_selected (index) index == 0 and l_pressed or index == 1 and a_pressed
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Stimuli
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,12 +208,6 @@ stimulus_group img_stims {
 group 'Option selector flags' {
     var selected_0 = 0
     var selected_1 = 0
-    var selected_2 = 0
-    var selected_3 = 0
-    var selected_4 = 0
-    var selected_5 = 0
-    var selected_6 = 0
-    var selected_7 = 0
 }
 
 // Option selector 'index' corresponds to the sequence index
@@ -223,7 +221,7 @@ circular_fixation_point option_selector_0 (
     y_position = option_stim_selector_position_y (0)
     x_size = 1
     color = red, green, blue
-    alpha_multiplier = view_option_selectors (0) * options_bin[0]
+    alpha_multiplier = view_option_selector_0
 )
 
 circular_fixation_point option_selector_1 (
@@ -235,91 +233,11 @@ circular_fixation_point option_selector_1 (
     y_position = option_stim_selector_position_y (1)
     x_size = 1
     color = red, green, blue
-    alpha_multiplier = view_option_selectors (1) * options_bin[1]
+    alpha_multiplier = view_option_selector_1
 )
 
-circular_fixation_point option_selector_2 (
-    trigger_width = fixation_width
-    trigger_watch_x = pointer_x// eye_h * (1 - use_mouse) + use_mouse * pointer_x
-    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = selected_2
-    x_position = option_stim_selector_position_x (2)
-    y_position = option_stim_selector_position_y (2)
-    x_size = 1
-    color = red, green, blue
-    alpha_multiplier = view_option_selectors (2) * options_bin[2]
-)
-
-circular_fixation_point option_selector_3 (
-    trigger_width = fixation_width
-    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
-    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = selected_3
-    x_position = option_stim_selector_position_x (3)
-    y_position = option_stim_selector_position_y (3)
-    x_size = 1
-    color = red, green, blue
-    alpha_multiplier = view_option_selectors (3) * options_bin[3]
-)
-
-circular_fixation_point option_selector_4 (
-    trigger_width = fixation_width
-    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
-    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = selected_4
-    x_position = option_stim_selector_position_x (4)
-    y_position = option_stim_selector_position_y (4)
-    x_size = 1
-    color = red, green, blue
-    alpha_multiplier = view_option_selectors (4) * options_bin[4]
-)
-
-circular_fixation_point option_selector_5 (
-    trigger_width = fixation_width
-    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
-    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = selected_5
-    x_position = option_stim_selector_position_x (5)
-    y_position = option_stim_selector_position_y (5)
-    x_size = 1
-    color = red, green, blue
-    alpha_multiplier = view_option_selectors (5) * options_bin[5]
-)
-/*
-circular_fixation_point option_selector_6 (
-    trigger_width = fixation_width
-    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
-    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = selected_6
-    x_position = option_stim_selector_position_x (6)
-    y_position = option_stim_selector_position_y (6)
-    x_size = 1
-    color = red, green, blue
-    alpha_multiplier = view_option_selectors (6) * options_bin[6]
-)
-
-circular_fixation_point option_selector_7 (
-    trigger_width = fixation_width
-    trigger_watch_x = pointer_x // eye_h * (1 - use_mouse) + use_mouse * pointer_x
-    trigger_watch_y = pointer_y // eye_v * (1 - use_mouse) + use_mouse * pointer_y
-    trigger_flag = selected_7
-    x_position = option_stim_selector_position_x (7)
-    y_position = option_stim_selector_position_y (7)
-    x_size = 1
-    color = red, green, blue
-    alpha_multiplier = view_option_selectors (7) * options_bin[7]
-)
-*/
 %define display_option_selectors()
     live_queue_stimulus(option_selector_0)
     live_queue_stimulus(option_selector_1)
-    live_queue_stimulus(option_selector_2)
-    live_queue_stimulus(option_selector_3)
-    live_queue_stimulus(option_selector_4)
-    live_queue_stimulus(option_selector_5)
-    /*
-    live_queue_stimulus(option_selector_6)
-    live_queue_stimulus(option_selector_7)
-    */
     update_display()
 %end

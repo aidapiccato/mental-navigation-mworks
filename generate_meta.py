@@ -17,7 +17,7 @@ meta_fn_tag = 1
 def generate_trial_meta():
     a = []
     trial_meta_id = 0
-    for n_stims in np.arange(MIN_NUM_STIMS, MAX_NUM_STIMS):
+    for n_stims in np.arange(MIN_NUM_STIMS, MAX_NUM_STIMS + 1):
         d = {
             'stim_drift_direction': [],
             'trial_meta_id': [],
