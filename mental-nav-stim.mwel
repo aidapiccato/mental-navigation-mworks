@@ -1,38 +1,17 @@
-// var n_stims_temp = 6
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Display variables and macros
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+%define mask_width = display_bounds('right')
+
 stimulus_display (
     background_color = br, bg, bb
     redraw_on_every_refresh = true
     announce_stimuli_on_implicit_updates = false
 )
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Variable groups
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-%define mask_width = display_bounds('right')
-
-%define num_stims = 8
-
-group 'Stimulus display variables' {
-    var br = 0.5
-    var bg = 0.5
-    var bb = 0.5
-
-    var stim_size = 7
-    var stim_padding = 1
-    var stim_position_y = 1
-
-    var option_distance = 8
-    var option_stim_size = 3
-    var option_selector_distance = 11
-
-    var alpha_m = 0
-    var alpha_m_inc = 0.1
-    var nconsecsucc_increment = 3
-
-    var num_visible_stims = 1
-}
-
+%define num_images = 8
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Range replicator macros
@@ -43,7 +22,7 @@ group 'Stimulus display variables' {
     range_replicator (
         variable = stim_index
         from = 0
-        to = num_stims - 1
+        to = num_images - 1
         step = 1
     )
 %end
@@ -52,17 +31,27 @@ group 'Stimulus display variables' {
     range_replicator (
         variable = option_stim_index
         from = 0
-        to = num_stims - 1
+        to = num_images - 1
         step = 1
     )
 % end
+
+%define for_each_seq_len ()
+    range_replicator (
+        variable = seq_len
+        from = 0
+        to = 4
+        step = 1
+    )
+% end
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////// Visibility macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 %define view_fixation_point = fixation
 %define view_center_indicator = pre_drift or drift or post_drift or pre_choice or choice or feedback
-%define view_window_mask = not choice
+%define view_window_mask =  not choice
 
 
 %define stim_index_seq = stim_pos[${stim_index}]
@@ -73,7 +62,10 @@ group 'Stimulus display variables' {
 %define view_stims = stim_index_vis and ((pre_drift and stim_index_seq == start_stim_index) or (drift and not testing) or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index))
 %define view_stim_masks = stim_index_vis and (pre_drift and stim_index_seq != start_stim_index) or drift or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index)
 
+%define view_seq_len_stim = ${seq_len} == n_stims - 2 and not end_trial
+
 %define view_option_stims = (option_stim_index_vis) and ((pre_choice or choice) or (feedback and selected == stim_pos[${option_stim_index}]))
+
 %define view_option_selector_0 = (choice or (feedback and selected_0))
 %define view_option_selector_1 = (choice or (feedback and selected_1))
 
@@ -109,8 +101,8 @@ group 'Stimulus display variables' {
 
 %define stim_seq_length = (n_stims) * (stim_size) + (n_stims) * stim_padding
 
-%define stim_wrapped_right = ((stim_position_x < (display_bounds('left') + stim_size)))
-%define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') - stim_size)))
+%define stim_wrapped_right = ((stim_position_x < (display_bounds('left') + 2 * stim_size)))
+%define stim_wrapped_left  = ((stim_position_x > (display_bounds('right') - 2 * stim_size)))
 
 %define stim_position_x = stim_offset + stim_index_seq * (stim_size) + (stim_index_seq + 1) * stim_padding + drift * stim_drift + (1 - drift) * stim_drift_fixed
 %define stim_position_x_wrapped = (stim_wrapped_right + -1 * stim_wrapped_left) * stim_seq_length + stim_position_x
@@ -201,14 +193,24 @@ stimulus_group img_stims {
     }
 }
 
+
+
+stimulus_group seq_len_stims {
+    for_each_seq_len {
+        image_file 'seq_len_stim_${seq_len}' (
+            path = "/Users/aidapiccato/PyCharmProjects/mental-navigation-mworks/images/icons/${seq_len}.png"
+            x_size = seq_len_stim_size
+            x_position = 0
+	        y_position = 8
+	        alpha_multiplier = view_seq_len_stim
+        )
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////// Option selectors
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-group 'Option selector flags' {
-    var selected_0 = 0
-    var selected_1 = 0
-}
 
 // Option selector 'index' corresponds to the sequence index
 
@@ -241,3 +243,11 @@ circular_fixation_point option_selector_1 (
     live_queue_stimulus(option_selector_1)
     update_display()
 %end
+
+text break_prompt (
+    text = 'You can now take a short break, after which you will move on to a new sequence. The task will resume in ' + (string)(60 - (int)((next_frame_time() - break_start_time)/1s)) + ' seconds.'
+    font_name = 'Helvetica Neue'
+    font_size = 30
+    x_size = 30.0
+    y_size = 10.0
+)

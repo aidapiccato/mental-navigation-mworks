@@ -47,7 +47,7 @@ group 'Trial variables' {
 
     var start_stim_index = 0
     var end_stim_index = 0
-
+    var seq_len (scope = local; default_value = 0)
     var stim_index (scope = local; default_value = 0)
     var option_stim_index (scope = local; default_value = 0)
 
@@ -74,6 +74,12 @@ group 'Experiment variable - Behavior' {
     var pointer_x = 0
     var pointer_y = 0
 
+    var criterion = 0.5
+}
+
+group 'Option selector flags' {
+    var selected_0 = 0
+    var selected_1 = 0
 }
 
 group 'Experiment variables' {
@@ -85,7 +91,7 @@ group 'Experiment variables' {
     var n_trials = 0
 
     var use_mouse = 0
-    var testing = 0
+    var testing = 1
     var use_keyboard = 1
 
     var sync = -1
@@ -101,13 +107,35 @@ group 'Phases' {
     var pre_choice = 0
     var choice = 0
     var feedback = 0
+    var end_trial = 0
 }
 
 group 'Phase durations' {
     var pre_drift_dur = 1s
-    var post_drift_dur = 1s
-    var pre_choice_dur = 1s
+    var post_drift_dur = 0.5s
+    var pre_choice_dur = 0.5s
     var choice_dur = 3s
-    var feedback_dur = 3s
+    var feedback_dur = 1s
     var drift_pause_dur = 1s
+    var break_dur = 60s
+}
+group 'Stimulus display variables' {
+    var br = 0.5
+    var bg = 0.5
+    var bb = 0.5
+
+    var stim_size = 7
+    var stim_padding = 1
+    var stim_position_y = 1
+
+    var option_distance = 8
+    var option_stim_size = 3
+    var option_selector_distance = 11
+
+    var alpha_m = 0
+    var alpha_m_inc = 0.1
+    var nconsecsucc_increment = 3
+
+    var num_visible_stims = 1
+    var seq_len_stim_size = 4
 }

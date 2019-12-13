@@ -30,6 +30,20 @@
     n_conditions = n_stims * n_stims * 2
 %end
 
+var break_start_time = 0
+
+
+%define show_message ()
+    break_start_time = next_frame_time ()
+    live_queue_stimulus (break_prompt)
+    update_display ()
+%end
+
+%define hide_message()
+    dequeue_stimulus(break_prompt)
+    update_display()
+%end
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////// Transition macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,9 +79,7 @@
     nsuccess = 0
     nfailure = 0
     nignore = 0
-
     reset_blocks ()
-    seq_id = seqs[seq_index]
     update_sequence_params_from_meta ()
     set_vars_new_block ()
 %end
@@ -126,6 +138,10 @@ protocol '2. Load sequence index' {
     seq_index = py_seq_index
 }
 
+protocol '4. Save sequence index' {
+    run_python_string(set_seq_index())
+}
+
 protocol '3. Begin experiment' {
     report ('***********BEGIN EXPERIMENT***********')
     set_vars_new_seq ()
@@ -143,12 +159,19 @@ protocol '3. Begin experiment' {
         }
     }
 
+    for_each_seq_len {
+        list {
+	        live_queue_stimulus (seq_len_stims[seq_len])
+        }
+    }
+
     live_queue_stimulus (window_mask_left)
     live_queue_stimulus (window_mask_right)
 
 
     trial (nsamples = 1000) {
         sync = 0
+        end_trial = 0
         set_vars_new_trial ()
 
         report ('***********BEGIN TRIAL id. $trial_id, no. $trial_index, BLOCK $block_index***********')
@@ -180,6 +203,7 @@ protocol '3. Begin experiment' {
                     when = eye_in_window and (not saccade)
                 )
             }
+
 
             state 'Pre drift' {
                 fixation = 0
@@ -373,21 +397,31 @@ protocol '3. Begin experiment' {
             state 'End trial' {
                 report ('***********END TRIAL***********')
 
+                sync = 7
+                feedback = 0
+                end_trial = 1
+
                 inc_n_trials ()
                 inc_trial_index ()
 
                 if (block_complete) {
 
-                    if ((nsuccess / n_conditions) < 0.5) {
+                    if ((nsuccess / n_conditions) < criterion) {
                         report ('remaining in sequence')
                         inc_block_index ()
                         set_vars_new_block ()
                     }
 
-                    if ((nsuccess / n_conditions) >= 0.5) {
+                    if ((nsuccess / n_conditions) >= criterion) {
                         report ('moving on to next sequence')
                         inc_seq_index ()
                         set_vars_new_seq ()
+
+                        show_message ()
+
+                        wait (break_dur)
+
+                        hide_message ()
                     }
                 }
                 yield ()

@@ -69,3 +69,11 @@ def get_seq_index():
     meta = subject_meta
     setvar('py_seq_index', int(meta['seq_index']))
     return
+
+def set_seq_index():
+    idx = int(getvar('seq_index'))
+    subject_id = int(getvar('subject_id'))
+    meta = subject_meta
+    meta['seq_index'] = idx
+    with open('%s/subject_%s.pkl' % (dir_path, subject_id), 'wb') as f:
+        pk.dump(meta, f)
