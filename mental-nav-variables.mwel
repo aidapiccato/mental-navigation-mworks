@@ -24,6 +24,7 @@ group 'Sequence variables' {
     var stim_bin = [0, 0, 0, 0, 0, 0, 0, 0]
     var stim_dist_cum = [0, 0, 0, 0, 0, 0, 0, 0]
     var n_conditions = 1
+    var block_index = 0
 }
 
 group 'Display variables' {
@@ -45,6 +46,7 @@ group 'Trial variables' {
     var options_bin = [0, 0, 0, 0, 0, 0, 0, 0]
     var selected = -1
 
+    var curr_stim_index = 0
     var start_stim_index = 0
     var end_stim_index = 0
     var seq_len (scope = local; default_value = 0)
@@ -74,7 +76,7 @@ group 'Experiment variable - Behavior' {
     var pointer_x = 0
     var pointer_y = 0
 
-    var criterion = 0.5
+    var criterion = 1
 }
 
 group 'Option selector flags' {

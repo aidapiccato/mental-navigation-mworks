@@ -7,7 +7,8 @@ N_OPTIONS = 2
 # username = 'apiccato'
 username = 'aidapiccato'
 dir_path = "/Users/%s/PycharmProjects/mental-navigation-mworks/pickle_meta" % username
-
+# REPLACE WITH CORRECT PATH TO pickle_meta/ DIRECTOR
+# dir_path = "placeholder"
 meta_fn_tag = getvar('subject_id')
 
 def hash(index, n_stims, block_index, seq_id, subject_id):
