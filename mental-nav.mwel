@@ -141,7 +141,7 @@ protocol '1. Set subject ID = 1' {
 }
 
 protocol '2. Load sequence index' {
-    run_python_file('mental-nav_utils.py')
+    run_python_file('mental-nav-utils.py')
     run_python_string(get_seq_index())
     seq_index = py_seq_index
 }

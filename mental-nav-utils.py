@@ -4,11 +4,10 @@ N_DISTINCT_STIMS = 8
 MAX_NUM_STIMS = 6
 MIN_NUM_STIMS = 2
 N_OPTIONS = 2
-# username = 'apiccato'
-username = 'aidapiccato'
-dir_path = "/Users/%s/PycharmProjects/mental-navigation-mworks/pickle_meta" % username
-# REPLACE WITH CORRECT PATH TO pickle_meta/ DIRECTOR
-# dir_path = "placeholder"
+
+# REPLACE WITH CORRECT PATH TO pickle_meta/ DIRECTORY
+dir_path = "/Users/aidapiccato/PycharmProjects/mental-navigation-mworks/pickle_meta"
+
 meta_fn_tag = getvar('subject_id')
 
 def hash(index, n_stims, block_index, seq_id, subject_id):
