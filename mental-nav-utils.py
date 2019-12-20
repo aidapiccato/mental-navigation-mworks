@@ -10,11 +10,11 @@ dir_path = "/Users/aidapiccato/PycharmProjects/mental-navigation-mworks/pickle_m
 
 meta_fn_tag = getvar('subject_id')
 
-def hash(index, n_stims, block_index, seq_id, subject_id):
+def hash(index, n_stims, block_index, seq_index, subject_id):
     ''''
     Hash trial index to randomized version. Seed is meta tag and should be unique for each subject
     '''
-    shuff = np.random.RandomState(seed=int(str(block_index) + str(seq_id) + str(subject_id))).permutation(np.arange(n_stims * n_stims * 2))
+    shuff = np.random.RandomState(seed=int(str(block_index) + str(seq_index) + str(subject_id))).permutation(np.arange(n_stims * n_stims * 2))
     return shuff[index]
 
 seq_fn = "%s/seq_%s.pkl" % (dir_path, meta_fn_tag)
@@ -31,11 +31,11 @@ def get_trial_metaparameters():
     subject_id = getvar('subject_id')
     block_idx = getvar('block_index')
     n_stims = getvar('n_stims')
-    seq_id = getvar('seq_id')
+    seq_index = getvar('seq_index')
     stim_pos = getvar('stim_pos')
     stim_bin = getvar('stim_bin')
     meta = trial_meta[n_stims - MIN_NUM_STIMS]
-    trial_id = hash(trial_idx, n_stims, block_idx, seq_id, subject_id)
+    trial_id = hash(trial_idx, n_stims, block_idx, seq_index, subject_id)
     end_stim_index_image = np.where(np.asarray(stim_pos) == int(meta['end_stim_index'][trial_id]))[0]
     temp = np.where(np.asarray(stim_bin) == 1)[0]
     temp = temp[temp != end_stim_index_image]
