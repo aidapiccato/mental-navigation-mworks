@@ -6,7 +6,7 @@ MIN_NUM_STIMS = 2
 N_OPTIONS = 2
 
 # REPLACE WITH CORRECT PATH TO pickle_meta/ DIRECTORY
-dir_path = "/Users/aidapiccato/PycharmProjects/mental-navigation-mworks/pickle_meta"
+dir_path = "placeholder/pickle_meta"
 
 meta_fn_tag = getvar('subject_id')
 
