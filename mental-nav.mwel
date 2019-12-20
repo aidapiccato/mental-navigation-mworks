@@ -282,32 +282,20 @@ protocol '3. Begin experiment' {
                 alpha_multiplier_fixed = alpha_multiplier_drift
 
                 drift = 0
+                drift_pause = 0
                 post_drift = 1
                 sync = 5
 
                 wait (post_drift_dur)
 
-                // goto ('Pre choice')
                 goto  ('Choice')
-            }
-
-             state 'Pre choice' {
-                report ("*********PRE CHOICE**********")
-
-                post_drift = 0
-                pre_choice = 1
-                sync = 6
-
-                wait (pre_choice_dur)
-
-                goto ('Choice')
             }
             state 'Choice' {
                 report ("*********CHOICE**********")
 
-                pre_choice = 0
+                post_drift = 0
                 choice = 1
-                sync = 7
+                sync = 6
 
 
                 start_timer (
@@ -336,7 +324,7 @@ protocol '3. Begin experiment' {
                  selected = stim_pos[option_0]
                  selected_1 = 0
                  selected_0 = 1
-                 sync = 8
+                 sync = 7
 
                  goto (
                     target = 'Success'
@@ -353,7 +341,7 @@ protocol '3. Begin experiment' {
                 selected = stim_pos[option_1]
                 selected_1 = 1
                 selected_0 = 0
-                sync = 8
+                sync = 7
 
                 goto (
                     target = 'Success'
@@ -375,7 +363,7 @@ protocol '3. Begin experiment' {
                 ignore = 0
                 choice = 0
                 feedback = 1
-                sync = 9
+                sync = 8
 
                 wait (feedback_dur)
                 goto ('End trial')
@@ -391,7 +379,7 @@ protocol '3. Begin experiment' {
 
                 choice = 0
                 feedback = 1
-                sync = 9
+                sync = 8
 
                 wait (feedback_dur)
                 goto ('End trial')
@@ -405,7 +393,7 @@ protocol '3. Begin experiment' {
 
                 choice = 0
                 feedback = 1
-                sync = 9
+                sync = 8
 
                 wait (feedback_dur)
                 goto ('End trial')
@@ -413,7 +401,7 @@ protocol '3. Begin experiment' {
             state 'End trial' {
                 report ('***********END TRIAL***********')
 
-                sync = 10
+                sync = 9
                 feedback = 0
                 end_trial = 1
 

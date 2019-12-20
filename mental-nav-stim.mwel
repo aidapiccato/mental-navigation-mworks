@@ -50,8 +50,8 @@ stimulus_display (
 ////// Visibility macros
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 %define view_fixation_point = fixation
-%define view_center_indicator = pre_drift or drift or post_drift or pre_choice or choice or feedback
-%define view_window_mask =  not choice
+%define view_center_indicator = pre_drift or drift or post_drift or choice or feedback
+%define view_window_mask = not choice
 
 
 %define stim_index_seq = stim_pos[${stim_index}]
@@ -59,12 +59,12 @@ stimulus_display (
 
 %define option_stim_index_vis = options_bin[${option_stim_index}]
 
-%define view_stims = stim_index_vis and ((pre_drift and stim_index_seq == start_stim_index) or (drift and not testing) or (post_drift and not testing) or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index))
-%define view_stim_masks = stim_index_vis and (pre_drift and stim_index_seq != start_stim_index) or drift or post_drift or ((pre_choice or choice or feedback) and stim_index_seq == end_stim_index)
+%define view_stims = stim_index_vis and ((pre_drift and stim_index_seq == start_stim_index) or (drift and not testing) or (post_drift and not testing) or ((choice or feedback) and stim_index_seq == end_stim_index))
+%define view_stim_masks = stim_index_vis and ((pre_drift and stim_index_seq != start_stim_index) or drift or ((choice or feedback or post_drift) and stim_index_seq == end_stim_index))
 
 %define view_seq_len_stim = ${seq_len} == n_stims - 2 and not end_trial
 
-%define view_option_stims = (option_stim_index_vis) and ((pre_choice or choice) or (feedback and selected == stim_pos[${option_stim_index}]))
+%define view_option_stims = (option_stim_index_vis) and ((choice) or (feedback and selected == stim_pos[${option_stim_index}]))
 
 %define view_option_selector_0 = (choice or (feedback and selected_0))
 %define view_option_selector_1 = (choice or (feedback and selected_1))
