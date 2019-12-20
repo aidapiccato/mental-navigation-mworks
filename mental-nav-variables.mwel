@@ -65,6 +65,9 @@ group 'Trial variables - Behavior' {
 
 group 'Block variables' {
     var n_trials_in_block = 0
+    var n_success_in_block = 0
+    var n_failure_in_block = 0
+    var trial_index = 0
 }
 
 group 'Experiment variable - Behavior' {
@@ -97,6 +100,8 @@ group 'Experiment variables' {
     var use_keyboard = 1
 
     var sync = -1
+
+    var rand_drift_pause_dur = 1
 }
 
 group 'Phases' {
@@ -120,6 +125,7 @@ group 'Phase durations' {
     var feedback_dur = 1s
     var drift_pause_dur = 1s
     var break_dur = 60s
+    var base_drift_pause_dur = 0.5s
 }
 group 'Stimulus display variables' {
     var br = 0.5

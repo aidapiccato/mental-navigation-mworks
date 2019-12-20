@@ -52,11 +52,13 @@ var break_start_time = 0
 %end
 
 %define inc_trial_index ()
-    accept_selections (trial_index)
+    accept_selections (selection_trial_index)
+    trial_index = trial_index + 1
 %end
 
 %define inc_block_index ()
     accept_selections (selection_block_index)
+    block_index = block_index + 1
 %end
 
 %define inc_n_trials ()
@@ -67,7 +69,7 @@ var break_start_time = 0
 //////////////////////////////////////////////////////////////
 
 %define reset_trials ()
-    reset_selection (trial_index)
+    reset_selection (selection_trial_index)
 %end
 
 %define reset_blocks ()
@@ -87,6 +89,9 @@ var break_start_time = 0
 %define set_vars_new_block ()
     reset_trials ()
     n_trials_in_block = 0
+    n_success_in_block = 0
+    n_failure_in_block = 0
+    trial_index = 0
 %end
 
 %define reset_vars_new_trial()
@@ -99,12 +104,12 @@ var break_start_time = 0
     ignore = 0
     selected_0 = 0
     selected_1 = 0
-
 %end
 
 %define get_vars_new_trial ()
     update_trial_params_from_meta ()
     seq_index = seq_index
+    trial_index = trial_index
     block_index = block_index
 %end
 
@@ -118,7 +123,7 @@ var break_start_time = 0
 /////////// Selection variables
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-selection trial_index (
+selection selection_trial_index (
     values = 0:1000
     selection = sequential_ascending
     advance_on_accept = YES
@@ -259,11 +264,9 @@ protocol '3. Begin experiment' {
 
                 curr_stim_index = curr_stim_index + -1 * stim_drift_direction
 
-                /*
                 if (rand_drift_pause_dur) {
-                    drift_pause_dur = rand(0, 0.5) + 0.5
+                    drift_pause_dur = rand(0, 1000000) + base_drift_pause_dur
                 }
-                */
 
                 wait (drift_pause_dur)
 
@@ -357,6 +360,7 @@ protocol '3. Begin experiment' {
                 report ("*********SUCCESS**********")
 
                 nsuccess = nsuccess + 1
+                n_success_in_block = n_success_in_block + 1
                 nconsecsuccess = nconsecsuccess + 1
                 success = 1
                 failure = 0
@@ -375,6 +379,7 @@ protocol '3. Begin experiment' {
                 success = 0
                 ignore = 0
                 nfailure = nfailure + 1
+                n_failure_in_block = n_failure_in_block + 1
                 nconsecsuccess = 0
 
                 choice = 0
@@ -410,13 +415,13 @@ protocol '3. Begin experiment' {
 
                 if (block_complete) {
 
-                    if ((nsuccess / n_conditions) < criterion) {
+                    if ((n_success_in_block / n_conditions) < criterion) {
                         report ('remaining in sequence')
                         inc_block_index ()
                         set_vars_new_block ()
                     }
 
-                    if ((nsuccess / n_conditions) >= criterion) {
+                    if ((n_success_in_block / n_conditions) >= criterion) {
                         report ('moving on to next sequence')
                         inc_seq_index ()
                         set_vars_new_seq ()

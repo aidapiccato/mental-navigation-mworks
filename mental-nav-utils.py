@@ -21,9 +21,10 @@ seq_fn = "%s/seq_%s.pkl" % (dir_path, meta_fn_tag)
 trial_fn = '%s/trials.pkl' % (dir_path)
 subject_fn = '%s/subject_%s.pkl' % (dir_path, meta_fn_tag)
 
-trial_meta = pk.load(open(trial_fn, 'rb'))
-seq_meta = pk.load(open(seq_fn, 'rb'))
-subject_meta = pk.load(open(subject_fn, 'rb'))
+with open(trial_fn, 'rb') as f:
+    trial_meta = pk.load(f)
+with open(subject_fn, 'rb') as f:
+    subject_meta = pk.load(f)
 
 def get_trial_metaparameters():
     trial_idx = getvar('trial_index')
